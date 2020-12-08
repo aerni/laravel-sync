@@ -9,7 +9,7 @@ class SyncServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->commands([
-            SyncCommand::class
+            SyncCommand::class,
         ]);
 
         $this->publishes([
@@ -21,6 +21,6 @@ class SyncServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->app->bind('sync', Sync::class);
+        //
     }
 }

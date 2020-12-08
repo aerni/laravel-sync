@@ -2,8 +2,8 @@
 
 namespace Aerni\Sync;
 
+use Facades\Aerni\Sync\Sync;
 use Illuminate\Console\Command;
-use Aerni\Sync\SyncFacade as Sync;
 use Illuminate\Support\Arr;
 
 class SyncCommand extends Command
@@ -13,12 +13,13 @@ class SyncCommand extends Command
      *
      * @var string
      */
-    protected $signature = '
+    protected $signature = "
         sync
-        {origin? : The origin you want your data to sync from}
-        {target? : The target you want your data to sync to}
-        {--options= : Define a set of rsync options}
-    ';
+        {operation : Choose if you want to 'push' or 'pull'}
+        {remote : The remote you want to 'push' to or 'pull' from}
+        {recipe : The recipe defining the paths you want to sync}
+        {--options : An optional set of rsync options}
+    ";
 
     /**
      * The console command description.
@@ -43,46 +44,63 @@ class SyncCommand extends Command
      */
     public function handle()
     {
-        $this->sync($this->origin(), $this->target(), $this->rsyncOptions());
-    }
-
-    protected function sync($origin, $target, $options)
-    {
-        if (is_array($origin) && is_array($target)) {
-            foreach ($origin as $key => $value) {
-                Sync::origin($value)->target($target[$key])->options($options)->sync();
-            }
-        } else {
-            Sync::origin($origin)->target($target)->options($options)->sync();
+        if (! $this->canSync()) {
+            $this->error('The sync can not be completed. Please check your arguments.');
+            return;
         }
+
+        $this->sync();
+        $this->info('The sync was successfull!');
     }
 
-    protected function origin()
+    protected function sync()
     {
-        $origin = $this->argument('origin')
-            ?? $this->choice('Choose the origin', array_keys($this->locations()));
-
-        return Arr::get($this->locations(), $origin);
+        Sync::operation($this->operation())
+            ->remote($this->remote())
+            ->recipe($this->recipe())
+            ->options($this->rsyncOptions())
+            ->run();
     }
 
-    protected function target()
+    protected function canSync(): bool
     {
-        $target = $this->argument('target')
-            ?? $this->choice('Choose the target', array_keys($this->locations()));
+        if ($this->operation() !== 'push' && $this->operation() !== 'pull') {
+            $this->error("The provided operation does not exist. The operation has to be either 'push' or 'pull'");
+            return false;
+        }
 
-        return Arr::get($this->locations(), $target);
+        if ($this->remote() === null) {
+            $this->error("The provided remote does not exists. Please choose an existing remote.");
+            return false;
+        };
+
+        if ($this->recipe() === null) {
+            $this->error("The provided recipe does not exists. Please choose an existing recipe.");
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function operation(): string
+    {
+        return $this->argument('operation');
+    }
+
+    protected function remote(): ?string
+    {
+        return Arr::get(config('sync.remotes'), $this->argument('remote'));
+    }
+
+    protected function recipe(): ?array
+    {
+        return Arr::get(config('sync.recipes'), $this->argument('recipe'));
     }
 
     protected function rsyncOptions(): string
     {
-        $options = $this->option('options')
-            ?? $this->ask('Define the rsync options you want to use. Leave empty to use the default options.');
-
-        return $options ?? config('sync.options');
-    }
-
-    protected function locations(): array
-    {
-        return config('sync.locations');
+        return $this->option('options')
+            ? $this->ask('Define a set of rsync options to use')
+            : config('sync.options');
     }
 }
