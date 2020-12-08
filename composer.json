@@ -1,0 +1,48 @@
+{
+    "name": "aerni/laravel-sync",
+    "description": "An artisan command to sync locations",
+    "homepage": "https://github.com/aerni/laravel-sync",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Michael Aerni",
+            "email": "hello@michaelaerni.ch",
+            "homepage": "https://www.michaelaerni.ch",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.4|^8.0",
+        "illuminate/support": "^7.0|^8.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^5.0|^6.0",
+        "nunomaduro/collision": "^5.0",
+        "phpunit/phpunit": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aerni\\Sync\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Aerni\\Sync\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aerni\\Sync\\SyncServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "prefer-stable": true,
+    "minimum-stability": "dev"
+}
