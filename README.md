@@ -5,7 +5,7 @@ This package provides a git-like artisan command to easily sync locations.
 Install the package using Composer.
 
 ```bash
-composer require aerni/laravel-sync
+composer require aerni/sync
 ```
 
 Publish the config of the package.
