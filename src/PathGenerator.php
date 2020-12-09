@@ -2,6 +2,8 @@
 
 namespace Aerni\Sync;
 
+use Illuminate\Support\Facades\Http;
+
 class PathGenerator
 {
     public function localPath(string $recipe): string
@@ -35,7 +37,9 @@ class PathGenerator
 
     protected function remoteHostEqualsLocalHost(string $remoteHost): bool
     {
-        if (request()->ip() !== $remoteHost) {
+        $ip = Http::get('https://api.ipify.org/?format=json')->json('ip');
+
+        if ($ip !== $remoteHost) {
             return false;
         }
 
