@@ -2,72 +2,58 @@
 
 namespace Aerni\Sync;
 
+use Aerni\Sync\PendingSync;
+use Facades\Aerni\Sync\PathGenerator;
+use Symfony\Component\Process\Process;
+
 class Sync
 {
-    protected string $operation;
-    protected string $remote;
-    protected array $recipe;
-    protected string $options;
+    protected $sync;
 
-    public function operation(string $operation): self
+    public function process(PendingSync $sync): void
     {
-        $this->operation = $operation;
+        $this->sync = $sync;
 
-        return $this;
+        if ($this->shouldPerformSync()) {
+            $this->run($this->command());
+        }
     }
 
-    public function remote(string $remote): self
+    protected function run(array $command): void
     {
-        $this->remote = $remote;
-
-        return $this;
+        (new Process($command))
+            ->run(function ($type, $buffer) {
+                echo $buffer;
+            });
     }
 
-    public function recipe(array $recipe): self
+    protected function command(): array
     {
-        $this->recipe = $recipe;
-
-        return $this;
-    }
-
-    public function options(string $options): self
-    {
-        $this->options = $options;
-
-        return $this;
-    }
-
-    public function run()
-    {
-        if ($this->operation === 'push') {
-            echo shell_exec("rsync {$this->localPath()} {$this->remotePath()} {$this->options}");
+        if ($this->sync->operation === 'push') {
+            return array_merge(['rsync', $this->localPath(), $this->remotePath()], $this->sync->options);
         }
 
-        if ($this->operation === 'pull') {
-            echo shell_exec("rsync {$this->remotePath()} {$this->localPath()} {$this->options}");
+        if ($this->sync->operation === 'pull') {
+            return array_merge(['rsync', $this->remotePath(), $this->localPath()], $this->sync->options);
         }
     }
 
     protected function localPath(): string
     {
-        return $this->recipe[0];
+        return PathGenerator::localPath($this->sync->recipe);
     }
 
     protected function remotePath(): string
     {
-        return $this->joinPaths($this->remote, $this->recipe[1]);
+        return PathGenerator::remotePath($this->sync->remote, $this->sync->recipe);
     }
 
-    protected function joinPaths(): string
+    protected function shouldPerformSync(): bool
     {
-        $paths = [];
-
-        foreach (func_get_args() as $arg) {
-            if ($arg !== '') {
-                $paths[] = $arg;
-            }
+        if ($this->localPath() === $this->remotePath()) {
+            return false;
         }
 
-        return preg_replace('#/+#', '/', join('/', $paths));
+        return true;
     }
 }

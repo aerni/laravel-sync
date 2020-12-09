@@ -2,7 +2,7 @@
 
 namespace Aerni\Sync;
 
-use Facades\Aerni\Sync\Sync;
+use Facades\Aerni\Sync\PendingSync;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 
@@ -16,9 +16,9 @@ class SyncCommand extends Command
     protected $signature = "
         sync
         {operation : Choose if you want to 'push' or 'pull'}
-        {remote : The remote you want to 'push' to or 'pull' from}
-        {recipe : The recipe defining the paths you want to sync}
-        {--options : An optional set of rsync options}
+        {remote : The remote you want to sync with}
+        {recipe : The recipe defining the path to sync}
+        {--option=* : A single rsync option to use}
     ";
 
     /**
@@ -42,24 +42,46 @@ class SyncCommand extends Command
      * Execute the console command.
      *
      */
-    public function handle()
+    public function handle(): void
     {
         if (! $this->canSync()) {
-            $this->error('The sync can not be completed. Please check your arguments.');
             return;
         }
 
         $this->sync();
-        $this->info('The sync was successfull!');
     }
 
-    protected function sync()
+    protected function sync(): void
     {
-        Sync::operation($this->operation())
+        PendingSync::operation($this->operation())
             ->remote($this->remote())
             ->recipe($this->recipe())
             ->options($this->rsyncOptions())
-            ->run();
+            ->process();
+    }
+
+    protected function operation(): string
+    {
+        return $this->argument('operation');
+    }
+
+    protected function remote(): ?array
+    {
+        return Arr::get(config('sync.remotes'), $this->argument('remote'));
+    }
+
+    protected function recipe(): ?string
+    {
+        return Arr::get(config('sync.recipes'), $this->argument('recipe'));
+    }
+
+    protected function rsyncOptions(): array
+    {
+        if (empty($this->option('option'))) {
+            return config('sync.options');
+        }
+
+        return $this->option('option');
     }
 
     protected function canSync(): bool
@@ -80,27 +102,5 @@ class SyncCommand extends Command
         }
 
         return true;
-    }
-
-    protected function operation(): string
-    {
-        return $this->argument('operation');
-    }
-
-    protected function remote(): ?string
-    {
-        return Arr::get(config('sync.remotes'), $this->argument('remote'));
-    }
-
-    protected function recipe(): ?array
-    {
-        return Arr::get(config('sync.recipes'), $this->argument('recipe'));
-    }
-
-    protected function rsyncOptions(): string
-    {
-        return $this->option('options')
-            ? $this->ask('Define a set of rsync options to use')
-            : config('sync.options');
     }
 }

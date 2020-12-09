@@ -7,15 +7,18 @@ return [
     | Remotes
     |--------------------------------------------------------------------------
     |
-    | Define on or more remotes. Each remote is a string with its path.
-    |
-    | Example: 'production' => 'forge@104.26.3.113:/home/forge/statamic.com',
+    | Define on or more remotes to sync with.
+    | Each remote is an array with 'username', 'host' and 'root'.
     |
     */
 
     'remotes' => [
 
-        //
+        // 'production' => [
+        //     'username' => 'forge',
+        //     'host' => '104.26.3.113',
+        //     'root' => '/home/forge/statamic.com',
+        // ],
 
     ],
 
@@ -24,16 +27,14 @@ return [
     | Recipes
     |--------------------------------------------------------------------------
     |
-    | Define one or more recipes. Each recipe is an array with two values.
-    | The first value is the local, and the second value the remote path.
-    |
-    | Example: 'assets' => [storage_path('app/assets/'), 'storage/app/assets/']
+    | Define one or more recipes.
+    | Each recipe is a string with a relative path to the location to sync.
     |
     */
 
     'recipes' => [
 
-        //
+        // 'assets' => 'storage/app/assets/',
 
     ],
 
@@ -42,11 +43,17 @@ return [
     | Options
     |--------------------------------------------------------------------------
     |
-    | A string of default rsync options.
+    | An array of default rsync options.
     | You can override these options when executing the command.
     |
     */
 
-    'options' => '--archive --itemize-changes --verbose --human-readable --progress',
+    'options' => [
+        '--archive',
+        '--itemize-changes',
+        '--verbose',
+        '--human-readable',
+        '--progress'
+    ],
 
 ];
