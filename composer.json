@@ -1,6 +1,6 @@
 {
     "name": "aerni/sync",
-    "description": "An artisan command to sync locations",
+    "description": "A git-like artisan command to easily sync locations.",
     "homepage": "https://github.com/aerni/laravel-sync",
     "license": "MIT",
     "authors": [
