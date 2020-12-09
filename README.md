@@ -89,12 +89,22 @@ Add any number of recipes with the paths you want to sync. A very common recipe 
 Configure the default rsync options to use when performing a sync.
 
 ## Usage Example
-The syntax of this command is inspired by git.
+The syntax of the `sync` command is inspired by git.
 
+```bash
+# The structure of the command
+php artisan sync [operation] [remote] [recipe] [--option=*]
+```
+
+**Examples:**
 ```bash
 # This will pull the assets from the staging remote
 php artisan sync pull staging assets
 
 # This will push the assets to the staging remote
 php artisan sync push staging assets
+
+# This will pull the assets from the production remote with custom rsync options
+php artisan sync pull production assets --option=-avh --option=--delete
 ```
+
