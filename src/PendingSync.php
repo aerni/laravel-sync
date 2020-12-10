@@ -8,7 +8,7 @@ class PendingSync
 {
     public string $operation;
     public array $remote;
-    public string $recipe;
+    public array $recipe;
     public array $options;
 
     public function operation(string $operation): self
@@ -25,7 +25,7 @@ class PendingSync
         return $this;
     }
 
-    public function recipe(string $recipe): self
+    public function recipe(array $recipe): self
     {
         $this->recipe = $recipe;
 

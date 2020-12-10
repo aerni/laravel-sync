@@ -8,14 +8,14 @@ return [
     |--------------------------------------------------------------------------
     |
     | Define on or more remotes to sync with.
-    | Each remote is an array with 'username', 'host' and 'root'.
+    | Each remote is an array with 'user', 'host' and 'root'.
     |
     */
 
     'remotes' => [
 
         // 'production' => [
-        //     'username' => 'forge',
+        //     'user' => 'forge',
         //     'host' => '104.26.3.113',
         //     'root' => '/home/forge/statamic.com',
         // ],
@@ -28,13 +28,13 @@ return [
     |--------------------------------------------------------------------------
     |
     | Define one or more recipes.
-    | Each recipe is a string with a relative path to the location to sync.
+    | Each recipe is an array of relative paths to sync.
     |
     */
 
     'recipes' => [
 
-        // 'assets' => 'storage/app/assets/',
+        // 'assets' => ['storage/app/assets/', 'storage/app/img/'],
 
     ],
 

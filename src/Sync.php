@@ -14,43 +14,79 @@ class Sync
     {
         $this->sync = $sync;
 
-        if ($this->shouldPerformSync()) {
-            $this->run($this->command());
+        $this->run($this->commands());
+    }
+
+    protected function run(?array $commands): void
+    {
+        if ($commands === null) {
+            return;
+        }
+
+        foreach ($commands as $command) {
+            (new Process($command))
+                ->setTimeout(7200)
+                ->run(function ($type, $buffer) {
+                    echo $buffer;
+                });
         }
     }
 
-    protected function run(array $command): void
+    protected function commands(): ?array
     {
-        (new Process($command))
-            ->run(function ($type, $buffer) {
-                echo $buffer;
-            });
-    }
+        foreach ($this->sync->recipe as $key => $path) {
+            if ($this->shouldPush($key)) {
+                $commands[] = $this->pushCommand($key);
+            }
 
-    protected function command(): array
-    {
-        if ($this->sync->operation === 'push') {
-            return array_merge(['rsync', $this->localPath(), $this->remotePath()], $this->sync->options);
+            if ($this->shouldPull($key)) {
+                $commands[] = $this->pullCommand($key);
+            }
         }
 
-        if ($this->sync->operation === 'pull') {
-            return array_merge(['rsync', $this->remotePath(), $this->localPath()], $this->sync->options);
+        return $commands ?? null;
+    }
+
+    protected function pushCommand(string $key): array
+    {
+        return array_merge(['rsync', $this->localPath($key), $this->remotePath($key)], $this->sync->options);
+    }
+
+    protected function pullCommand(string $key): array
+    {
+        return array_merge(['rsync', $this->remotePath($key), $this->localPath($key)], $this->sync->options);
+    }
+
+    protected function localPath(string $key): string
+    {
+        return PathGenerator::localPath($this->sync->recipe[$key]);
+    }
+
+    protected function remotePath(string $key): string
+    {
+        return PathGenerator::remotePath($this->sync->remote, $this->sync->recipe[$key]);
+    }
+
+    protected function shouldPush(string $key): bool
+    {
+        if ($this->sync->operation !== 'push') {
+            return false;
         }
+
+        if ($this->localPath($key) === $this->remotePath($key)) {
+            return false;
+        }
+
+        return true;
     }
 
-    protected function localPath(): string
+    protected function shouldPull(string $key): bool
     {
-        return PathGenerator::localPath($this->sync->recipe);
-    }
+        if ($this->sync->operation !== 'pull') {
+            return false;
+        }
 
-    protected function remotePath(): string
-    {
-        return PathGenerator::remotePath($this->sync->remote, $this->sync->recipe);
-    }
-
-    protected function shouldPerformSync(): bool
-    {
-        if ($this->localPath() === $this->remotePath()) {
+        if ($this->localPath($key) === $this->remotePath($key)) {
             return false;
         }
 

@@ -17,8 +17,8 @@ class SyncCommand extends Command
         sync
         {operation : Choose if you want to 'push' or 'pull'}
         {remote : The remote you want to sync with}
-        {recipe : The recipe defining the path to sync}
-        {--option=* : A single rsync option to use}
+        {recipe : The recipe defining the paths to sync}
+        {--option=* : An rsync option to use}
     ";
 
     /**
@@ -70,7 +70,7 @@ class SyncCommand extends Command
         return Arr::get(config('sync.remotes'), $this->argument('remote'));
     }
 
-    protected function recipe(): ?string
+    protected function recipe(): ?array
     {
         return Arr::get(config('sync.recipes'), $this->argument('recipe'));
     }

@@ -6,20 +6,20 @@ use Illuminate\Support\Facades\Http;
 
 class PathGenerator
 {
-    public function localPath(string $recipe): string
+    public function localPath(string $path): string
     {
-        return base_path($recipe);
+        return base_path($path);
     }
 
-    public function remotePath(array $remote, string $recipe): string
+    public function remotePath(array $remote, string $path): string
     {
-        $fullPath = $this->joinPaths($remote['root'], $recipe);
+        $fullPath = $this->joinPaths($remote['root'], $path);
 
         if ($this->remoteHostEqualsLocalHost($remote['host'])) {
             return $fullPath;
         }
 
-        return "{$remote['username']}@{$remote['host']}:$fullPath";
+        return "{$remote['user']}@{$remote['host']}:$fullPath";
     }
 
     protected function joinPaths(): string
