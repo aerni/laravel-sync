@@ -1,3 +1,5 @@
+![GitHub release](https://flat.badgen.net/github/release/aerni/laravel-sync)
+
 # Laravel Sync
 This package provides a git-like artisan command to easily sync files and folders between environments. This is super useful for assets, documents, and any other files that are untracked in your git repository. 
 
