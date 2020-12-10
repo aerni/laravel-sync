@@ -27,8 +27,8 @@ return [
     | Recipes
     |--------------------------------------------------------------------------
     |
-    | Define one or more recipes.
-    | Each recipe is an array of relative paths you want to sync.
+    | Define one or more recipes with the paths you want to sync.
+    | Each recipe is an array of relative paths to your project's root.
     |
     */
 
