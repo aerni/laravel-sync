@@ -1,8 +1,10 @@
 # Laravel Sync
-This package provides a git-like artisan command to easily sync files and folders between environments using rsync. This is super useful for assets, documents, and any other files that are untracked in your git repository.
+This package provides a git-like artisan command to easily sync files and folders between environments. This is super useful for assets, documents, and any other files that are untracked in your git repository. 
+
+Laravel Sync is a no-brainer and will soon become best friends with your deploy script. The days are over when you had to manually keep track of files and folders between your environments. Do yourself a favor and give it a try!
 
 ## Requirements
-- `rsync` installed on both your source and destination machine
+- `rsync` on both your source and destination machine
 - A working `SSH` setup between your source and destination machine
 
 ## Installation
