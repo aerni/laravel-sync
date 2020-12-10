@@ -6,10 +6,18 @@ use Facades\Aerni\Sync\Sync;
 
 class PendingSync
 {
+    public $command;
     public string $operation;
     public array $remote;
     public array $recipe;
     public array $options;
+
+    public function command($command): self
+    {
+        $this->command = $command;
+
+        return $this;
+    }
 
     public function operation(string $operation): self
     {
@@ -39,8 +47,8 @@ class PendingSync
         return $this;
     }
 
-    public function process(): void
+    public function process(): bool
     {
-        Sync::process($this);
+        return Sync::process($this);
     }
 }

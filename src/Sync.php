@@ -4,32 +4,33 @@ namespace Aerni\Sync;
 
 use Aerni\Sync\PendingSync;
 use Facades\Aerni\Sync\PathGenerator;
-use Symfony\Component\Process\Process;
+use TitasGailius\Terminal\Terminal;
 
 class Sync
 {
     protected $sync;
 
-    public function process(PendingSync $sync): void
+    public function process(PendingSync $sync): bool
     {
         $this->sync = $sync;
 
-        $this->run($this->commands());
+        return $this->run($this->commands());
     }
 
-    protected function run(?array $commands): void
+    protected function run(?array $commands): bool
     {
         if ($commands === null) {
-            return;
+            return false;
         }
 
         foreach ($commands as $command) {
-            (new Process($command))
-                ->setTimeout(7200)
-                ->run(function ($type, $buffer) {
-                    echo $buffer;
-                });
+            Terminal::timeout(config('sync.timeout'))
+                ->output($this->sync->command)
+                ->run($command)
+                ->throw();
         }
+
+        return true;
     }
 
     protected function commands(): ?array

@@ -53,11 +53,16 @@ class SyncCommand extends Command
 
     protected function sync(): void
     {
-        PendingSync::operation($this->operation())
+        $sync = PendingSync::command($this)
+            ->operation($this->operation())
             ->remote($this->remote())
             ->recipe($this->recipe())
             ->options($this->rsyncOptions())
             ->process();
+
+        if ($sync) {
+            $this->info('The sync was successful');
+        }
     }
 
     protected function operation(): string

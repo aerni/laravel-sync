@@ -14,7 +14,7 @@
     "require": {
         "php": "^7.4|^8.0",
         "illuminate/support": "^7.0|^8.0",
-        "symfony/process": "^5.2"
+        "titasgailius/terminal": "^0.5.0"
     },
     "require-dev": {
         "orchestra/testbench": "^5.0|^6.0",
