@@ -7,7 +7,7 @@ return [
     | Remotes
     |--------------------------------------------------------------------------
     |
-    | Define on or more remotes to sync with.
+    | Define on or more remotes you want to sync with.
     | Each remote is an array with 'user', 'host' and 'root'.
     |
     */
@@ -28,7 +28,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Define one or more recipes.
-    | Each recipe is an array of relative paths to sync.
+    | Each recipe is an array of relative paths you want to sync.
     |
     */
 

@@ -2,95 +2,45 @@
 
 namespace Aerni\Sync;
 
-use Aerni\Sync\PendingSync;
-use Facades\Aerni\Sync\PathGenerator;
+use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use TitasGailius\Terminal\Terminal;
 
 class Sync
 {
-    protected $sync;
+    protected $commands;
+    protected $artisanCommand;
 
-    public function process(PendingSync $sync): bool
+    public function commands(Collection $commands): self
     {
-        $this->sync = $sync;
+        $this->commands = $commands;
 
-        return $this->run($this->commands());
+        return $this;
     }
 
-    protected function run(?array $commands): bool
+    public function artisanCommand(Command $artisanCommand): self
     {
-        if ($commands === null) {
-            return false;
-        }
+        $this->artisanCommand = $artisanCommand;
 
-        foreach ($commands as $command) {
-            Terminal::timeout(config('sync.timeout'))
-                ->output($this->sync->command)
+        return $this;
+    }
+
+    public function run(): self
+    {
+        $this->commands->each(function ($command) {
+            $response = Terminal::timeout(config('sync.timeout'))
+                ->output($this->artisanCommand)
                 ->run($command)
                 ->throw();
-        }
 
-        return true;
+            $this->successful = $response->successful();
+        });
+
+        return $this;
     }
 
-    protected function commands(): ?array
+    public function successful(): bool
     {
-        foreach ($this->sync->recipe as $key => $path) {
-            if ($this->shouldPush($key)) {
-                $commands[] = $this->pushCommand($key);
-            }
-
-            if ($this->shouldPull($key)) {
-                $commands[] = $this->pullCommand($key);
-            }
-        }
-
-        return $commands ?? null;
-    }
-
-    protected function pushCommand(string $key): array
-    {
-        return array_merge(['rsync', $this->localPath($key), $this->remotePath($key)], $this->sync->options);
-    }
-
-    protected function pullCommand(string $key): array
-    {
-        return array_merge(['rsync', $this->remotePath($key), $this->localPath($key)], $this->sync->options);
-    }
-
-    protected function localPath(string $key): string
-    {
-        return PathGenerator::localPath($this->sync->recipe[$key]);
-    }
-
-    protected function remotePath(string $key): string
-    {
-        return PathGenerator::remotePath($this->sync->remote, $this->sync->recipe[$key]);
-    }
-
-    protected function shouldPush(string $key): bool
-    {
-        if ($this->sync->operation !== 'push') {
-            return false;
-        }
-
-        if ($this->localPath($key) === $this->remotePath($key)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    protected function shouldPull(string $key): bool
-    {
-        if ($this->sync->operation !== 'pull') {
-            return false;
-        }
-
-        if ($this->localPath($key) === $this->remotePath($key)) {
-            return false;
-        }
-
-        return true;
+        return $this->successful;
     }
 }

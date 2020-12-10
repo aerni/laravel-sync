@@ -2,9 +2,10 @@
 
 namespace Aerni\Sync;
 
-use Facades\Aerni\Sync\PendingSync;
-use Illuminate\Console\Command;
+use Facades\Aerni\Sync\Sync;
 use Illuminate\Support\Arr;
+use Illuminate\Console\Command;
+use Facades\Aerni\Sync\CommandGenerator;
 
 class SyncCommand extends Command
 {
@@ -44,7 +45,7 @@ class SyncCommand extends Command
      */
     public function handle(): void
     {
-        if (! $this->canSync()) {
+        if (! $this->canProcessConsoleCommand()) {
             return;
         }
 
@@ -53,14 +54,22 @@ class SyncCommand extends Command
 
     protected function sync(): void
     {
-        $sync = PendingSync::command($this)
-            ->operation($this->operation())
+        $commands = CommandGenerator::operation($this->operation())
             ->remote($this->remote())
             ->recipe($this->recipe())
             ->options($this->rsyncOptions())
-            ->process();
+            ->run();
 
-        if ($sync) {
+        if ($commands === null) {
+            $this->error("The origin and target path are one and the same. You can't sync a path with itself.");
+            return;
+        }
+
+        $sync = Sync::commands($commands)
+            ->artisanCommand($this)
+            ->run();
+
+        if ($sync->successful()) {
             $this->info('The sync was successful');
         }
     }
@@ -89,7 +98,7 @@ class SyncCommand extends Command
         return $this->option('option');
     }
 
-    protected function canSync(): bool
+    protected function canProcessConsoleCommand(): bool
     {
         if ($this->operation() !== 'push' && $this->operation() !== 'pull') {
             $this->error("The provided operation does not exist. The operation has to be either 'push' or 'pull'");
