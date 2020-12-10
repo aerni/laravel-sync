@@ -1,6 +1,10 @@
 # Laravel Sync
 This package provides a git-like artisan command to easily sync files and folders between environments using rsync. This is super useful for assets, documents, and any other files that are untracked in your git repository.
 
+## Requirements
+- `rsync` installed on both your source and destination machine
+- A working `SSH` setup between your source and destination machine
+
 ## Installation
 Install the package using Composer.
 
@@ -90,19 +94,17 @@ return [
 
 ```
 
-## Requirements
-- `rsync` installed on both your source and destination machine
-- A working `SSH` setup between your source and destination machine
-
 ## Configuration
 To use this package, you have to define at least one remote and recipe.
 
 ### Remotes
-Each remote consists of a a `user`, `host` and `root`.
+Each remote consists of a a `user`, a `host` and a `root`.
 
-`user`: The username to log in to the host
-`host`: The IP address of your server
-`root`: The absolute path to the project's root folder
+| Key    | Description                                    |
+| ------ | ---------------------------------------------- |
+| `user` | The username to log in to the host             |
+| `host` | The IP address of your server.                 |
+| `root` | The absolute path to the project's root folder |
 
 **Example:**
 ```php
