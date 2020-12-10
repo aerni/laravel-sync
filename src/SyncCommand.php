@@ -2,10 +2,10 @@
 
 namespace Aerni\Sync;
 
-use Facades\Aerni\Sync\Sync;
-use Illuminate\Support\Arr;
-use Illuminate\Console\Command;
 use Facades\Aerni\Sync\CommandGenerator;
+use Facades\Aerni\Sync\Sync;
+use Illuminate\Console\Command;
+use Illuminate\Support\Arr;
 
 class SyncCommand extends Command
 {
@@ -62,6 +62,7 @@ class SyncCommand extends Command
 
         if ($commands === null) {
             $this->error("The origin and target path are one and the same. You can't sync a path with itself.");
+
             return;
         }
 
@@ -102,16 +103,19 @@ class SyncCommand extends Command
     {
         if ($this->operation() !== 'push' && $this->operation() !== 'pull') {
             $this->error("The provided operation does not exist. The operation has to be either 'push' or 'pull'");
+
             return false;
         }
 
         if ($this->remote() === null) {
             $this->error("The provided remote does not exists. Please choose an existing remote.");
+
             return false;
         };
 
         if ($this->recipe() === null) {
             $this->error("The provided recipe does not exists. Please choose an existing recipe.");
+
             return false;
         }
 
