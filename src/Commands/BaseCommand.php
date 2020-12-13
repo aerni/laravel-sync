@@ -2,9 +2,9 @@
 
 namespace Aerni\Sync\Commands;
 
-use Illuminate\Support\Arr;
-use Illuminate\Console\Command;
 use Facades\Aerni\Sync\CommandGenerator;
+use Illuminate\Console\Command;
+use Illuminate\Support\Arr;
 
 class BaseCommand extends Command
 {

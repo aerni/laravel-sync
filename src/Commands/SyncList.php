@@ -2,8 +2,6 @@
 
 namespace Aerni\Sync\Commands;
 
-use Facades\Aerni\Sync\CommandGenerator;
-
 class SyncList extends BaseCommand
 {
     /**
