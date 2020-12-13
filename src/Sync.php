@@ -28,7 +28,7 @@ class Sync
     public function run(): self
     {
         $this->commands->each(function ($command) {
-            $response = Terminal::timeout(config('sync.timeout'))
+            $response = Terminal::timeout(null)
                 ->output($this->artisanCommand)
                 ->run($command)
                 ->throw();
