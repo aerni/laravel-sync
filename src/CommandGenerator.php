@@ -46,17 +46,24 @@ class CommandGenerator
             return null;
         }
 
-        return $this->commands();
+        return $this->commandsString();
     }
 
-    protected function commands(): Collection
+    public function commandsArray(): Collection
     {
-        return collect($this->recipe)->map(function ($value, $key) {
-            $origin = ($this->operation === 'pull') ? $this->remotePath($key) : $this->localPath($key);
-            $target = ($this->operation === 'pull') ? $this->localPath($key) : $this->remotePath($key);
-            $options = $this->options;
+        return collect($this->recipe)->map(function ($path, $key) {
+            return [
+                'origin' => ($this->operation === 'pull') ? $this->remotePath($key) : $this->localPath($key),
+                'target' => ($this->operation === 'pull') ? $this->localPath($key) : $this->remotePath($key),
+                'options' => $this->options,
+            ];
+        });
+    }
 
-            return "rsync $origin $target $options";
+    protected function commandsString(): Collection
+    {
+        return $this->commandsArray()->map(function ($command) {
+            return "rsync {$command['origin']} {$command['target']} {$command['options']}";
         });
     }
 
