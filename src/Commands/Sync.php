@@ -3,11 +3,11 @@
 namespace Aerni\Sync\Commands;
 
 use Facades\Aerni\Sync\CommandGenerator;
-use Facades\Aerni\Sync\Sync;
+use Facades\Aerni\Sync\SyncProcessor;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 
-class SyncCommand extends Command
+class Sync extends Command
 {
     /**
      * The name and signature of the console command.
@@ -66,7 +66,7 @@ class SyncCommand extends Command
             return;
         }
 
-        $sync = Sync::commands($commands)
+        $sync = SyncProcessor::commands($commands)
             ->artisanCommand($this)
             ->run();
 
