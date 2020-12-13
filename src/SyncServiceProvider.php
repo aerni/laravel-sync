@@ -9,7 +9,7 @@ class SyncServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->commands([
-            SyncCommand::class,
+            Commands\SyncCommand::class,
         ]);
 
         $this->publishes([

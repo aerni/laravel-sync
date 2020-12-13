@@ -1,6 +1,6 @@
 <?php
 
-namespace Aerni\Sync;
+namespace Aerni\Sync\Commands;
 
 use Facades\Aerni\Sync\CommandGenerator;
 use Facades\Aerni\Sync\Sync;
