@@ -24,15 +24,6 @@ class SyncList extends BaseCommand
      */
     public function handle(): void
     {
-        if (! $this->canProcessConsoleCommand()) {
-            return;
-        }
-
-        $this->list();
-    }
-
-    protected function list(): void
-    {
         $headers = ['Origin', 'Target', 'Options'];
         $commands = $this->commandGenerator()->commandsArray();
 

@@ -2,8 +2,9 @@
 
 namespace Aerni\Sync;
 
-use Facades\Aerni\Sync\PathGenerator;
 use Illuminate\Support\Collection;
+use Facades\Aerni\Sync\PathGenerator;
+use Aerni\Sync\Exceptions\SyncException;
 
 class CommandGenerator
 {
@@ -40,10 +41,10 @@ class CommandGenerator
         return $this;
     }
 
-    public function run(): ?Collection
+    public function run(): Collection
     {
         if ($this->localPathEqualsRemotePath()) {
-            return null;
+            throw SyncException::samePath();
         }
 
         return $this->commandsString();

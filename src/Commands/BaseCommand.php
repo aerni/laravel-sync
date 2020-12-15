@@ -2,9 +2,9 @@
 
 namespace Aerni\Sync\Commands;
 
-use Facades\Aerni\Sync\CommandGenerator;
+use Facades\Aerni\Sync\Config;
 use Illuminate\Console\Command;
-use Illuminate\Support\Arr;
+use Facades\Aerni\Sync\CommandGenerator;
 
 class BaseCommand extends Command
 {
@@ -32,48 +32,21 @@ class BaseCommand extends Command
 
     protected function operation(): string
     {
-        return $this->argument('operation');
+        return Config::operation($this->argument('operation'));
     }
 
-    protected function remote(): ?array
+    protected function remote(): array
     {
-        return Arr::get(config('sync.remotes'), $this->argument('remote'));
+        return Config::remote($this->argument('remote'));
     }
 
-    protected function recipe(): ?array
+    protected function recipe(): array
     {
-        return Arr::get(config('sync.recipes'), $this->argument('recipe'));
+        return Config::recipe($this->argument('recipe'));
     }
 
     protected function rsyncOptions(): array
     {
-        if (empty($this->option('option'))) {
-            return config('sync.options');
-        }
-
-        return $this->option('option');
-    }
-
-    protected function canProcessConsoleCommand(): bool
-    {
-        if ($this->operation() !== 'push' && $this->operation() !== 'pull') {
-            $this->error("The provided operation does not exist. The operation has to be either 'push' or 'pull'");
-
-            return false;
-        }
-
-        if ($this->remote() === null) {
-            $this->error("The provided remote does not exists. Please choose an existing remote.");
-
-            return false;
-        };
-
-        if ($this->recipe() === null) {
-            $this->error("The provided recipe does not exists. Please choose an existing recipe.");
-
-            return false;
-        }
-
-        return true;
+        return Config::rsyncOptions($this->option('option'));
     }
 }

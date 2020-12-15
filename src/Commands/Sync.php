@@ -26,22 +26,7 @@ class Sync extends BaseCommand
      */
     public function handle(): void
     {
-        if (! $this->canProcessConsoleCommand()) {
-            return;
-        }
-
-        $this->sync();
-    }
-
-    protected function sync(): void
-    {
         $commands = $this->commandGenerator()->run();
-
-        if ($commands === null) {
-            $this->error("The origin and target path are one and the same. You can't sync a path with itself.");
-
-            return;
-        }
 
         $sync = SyncProcessor::commands($commands)
             ->artisanCommand($this)
