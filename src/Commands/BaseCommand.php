@@ -14,8 +14,8 @@ class BaseCommand extends Command
             {operation : Choose if you want to 'push' or 'pull'}
             {remote : The remote you want to sync with}
             {recipe : The recipe defining the paths to sync}
-            {--option=* : An rsync option to use}
-            {--dry : Perform a dry run of the sync}
+            {--O|option=* : An rsync option to use}
+            {--D|dry : Perform a dry run of the sync}
         ";
 
         $this->signature .= $baseSignature;
