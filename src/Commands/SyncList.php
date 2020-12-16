@@ -24,7 +24,7 @@ class SyncList extends BaseCommand
      */
     public function handle(): void
     {
-        $headers = ['Origin', 'Target', 'Options'];
+        $headers = ['Origin', 'Target', 'Options', 'Port'];
         $commands = $this->commandGenerator()->commandsArray();
 
         $this->table($headers, $commands);

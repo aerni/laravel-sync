@@ -17,6 +17,7 @@ return [
         // 'production' => [
         //     'user' => 'forge',
         //     'host' => '104.26.3.113',
+        //     'port' => 1431,
         //     'root' => '/home/forge/statamic.com',
         // ],
 

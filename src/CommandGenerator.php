@@ -57,6 +57,7 @@ class CommandGenerator
                 'origin' => ($this->operation === 'pull') ? $this->remotePath($key) : $this->localPath($key),
                 'target' => ($this->operation === 'pull') ? $this->localPath($key) : $this->remotePath($key),
                 'options' => $this->options,
+                'port' => $this->port(),
             ];
         });
     }
@@ -64,8 +65,13 @@ class CommandGenerator
     protected function commandsString(): Collection
     {
         return $this->commandsArray()->map(function ($command) {
-            return "rsync {$command['origin']} {$command['target']} {$command['options']}";
+            return "rsync -e 'ssh -p {$command['port']}' {$command['options']} {$command['origin']} {$command['target']}";
         });
+    }
+
+    protected function port(): string
+    {
+        return $this->remote['port'] ?? '22';
     }
 
     protected function localPath(string $key): string
