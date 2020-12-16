@@ -62,7 +62,7 @@ class CommandGenerator
         });
     }
 
-    protected function commandsString(): Collection
+    public function commandsString(): Collection
     {
         return $this->commandsArray()->map(function ($command) {
             return "rsync -e 'ssh -p {$command['port']}' {$command['options']} {$command['origin']} {$command['target']}";

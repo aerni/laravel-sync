@@ -10,6 +10,7 @@ class SyncServiceProvider extends ServiceProvider
     {
         $this->commands([
             Commands\Sync::class,
+            Commands\SyncCommands::class,
             Commands\SyncList::class,
         ]);
 
