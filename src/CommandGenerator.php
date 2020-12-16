@@ -2,9 +2,9 @@
 
 namespace Aerni\Sync;
 
-use Illuminate\Support\Collection;
-use Facades\Aerni\Sync\PathGenerator;
 use Aerni\Sync\Exceptions\SyncException;
+use Facades\Aerni\Sync\PathGenerator;
+use Illuminate\Support\Collection;
 
 class CommandGenerator
 {
