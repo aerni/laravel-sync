@@ -139,14 +139,13 @@ php artisan [command] [operation] [remote] [recipe] [options]
 ### Command Structure
 The structure of the command looks like this:
 
-| Structure      | Description                                     |
-| -------------- | ----------------------------------------------- |
-| `command`      | The command you want to use                     |
-| `operation`    | The operation to use. Either `pull` or `push`.  |
-| `remote`       | The remote you want to sync with                |
-| `recipe`       | The recipe defining the paths to sync           |
-| `--O\|option=*` | An rsync option to use                         |
-| `--D\|dry`      | Perform a dry run of the sync                  |
+| Structure   | Description                                      |
+| ----------- | ------------------------------------------------ |
+| `command`   | The command you want to use                      |
+| `operation` | The operation you want to use (`pull` or `push`) |
+| `remote`    | The remote you want to sync with                 |
+| `recipe`    | The recipe defining the paths to sync            |
+| `options`   | The options you want to use                      |
 
 ### Available Commands
 You have three commands at your disposal:
