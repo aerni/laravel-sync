@@ -48,7 +48,7 @@ class BaseCommand extends Command
 
     protected function rsyncOptions(): array
     {
-        $options = Config::rsyncOptions($this->option('option'));
+        $options = Config::options($this->option('option'));
 
         return collect($options)
             ->push($this->dry())

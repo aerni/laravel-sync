@@ -38,7 +38,7 @@ class Config
         return $recipe;
     }
 
-    public function rsyncOptions(array $options): array
+    public function options(array $options): array
     {
         if (empty($options)) {
             return config('sync.options');
