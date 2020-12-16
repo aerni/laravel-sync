@@ -15,6 +15,7 @@ class BaseCommand extends Command
             {remote : The remote you want to sync with}
             {recipe : The recipe defining the paths to sync}
             {--option=* : An rsync option to use}
+            {--dry : Perform a dry run of the sync}
         ";
 
         $this->signature .= $baseSignature;
@@ -47,6 +48,17 @@ class BaseCommand extends Command
 
     protected function rsyncOptions(): array
     {
-        return Config::rsyncOptions($this->option('option'));
+        $options = Config::rsyncOptions($this->option('option'));
+
+        return collect($options)
+            ->push($this->dry())
+            ->filter()
+            ->unique()
+            ->toArray();
+    }
+
+    protected function dry(): string
+    {
+        return $this->option('dry') ? '--dry-run' : '';
     }
 }
