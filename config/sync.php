@@ -50,11 +50,11 @@ return [
     */
 
     'options' => [
-        '--archive',
-        '--itemize-changes',
-        '--verbose',
-        '--human-readable',
-        '--progress'
+        // '--archive',
+        // '--itemize-changes',
+        // '--verbose',
+        // '--human-readable',
+        // '--progress'
     ],
 
 ];
