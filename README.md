@@ -180,3 +180,13 @@ Perform a dry sync:
 ```bash
 php artisan sync pull staging assets --dry
 ```
+
+List the origin, target, options, and port in a nice table:
+```bash
+php artisan sync:list pull staging assets
+```
+
+List all rsync commands:
+```bash
+php artisan sync:commands pull staging assets
+```
