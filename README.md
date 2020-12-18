@@ -101,11 +101,15 @@ Each remote consists of a a `user`, a `host` and a `root`. Optionally, you may a
 | `root` | The absolute path to the project's root folder |
 
 ```php
-'production' => [
-    'user' => 'forge',
-    'host' => '104.26.3.113',
-    'port' => 1431,
-    'root' => '/home/forge/statamic.com',
+'remotes' => [
+
+    'production' => [
+        'user' => 'forge',
+        'host' => '104.26.3.113',
+        'port' => 1431,
+        'root' => '/home/forge/statamic.com',
+    ],
+    
 ],
 ```
 
