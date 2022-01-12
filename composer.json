@@ -12,12 +12,12 @@
         }
     ],
     "require": {
-        "php": "^7.4|^8.0",
-        "illuminate/support": "^7.0|^8.0",
-        "titasgailius/terminal": "^0.5.0"
+        "php": "^7.4 || ^8.0",
+        "illuminate/support": "^7.0 || ^8.0",
+        "titasgailius/terminal": "^1.1"
     },
     "require-dev": {
-        "orchestra/testbench": "^5.0|^6.0",
+        "orchestra/testbench": "^5.0 || ^6.0",
         "nunomaduro/collision": "^5.0",
         "phpunit/phpunit": "^9.0"
     },
