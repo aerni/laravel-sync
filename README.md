@@ -46,6 +46,7 @@ return [
         //     'host' => '104.26.3.113',
         //     'port' => 1431,
         //     'root' => '/home/forge/statamic.com',
+        //     'read_only' => false,
         // ],
 
     ],
@@ -91,14 +92,15 @@ return [
 To use this package, you have to define at least one remote and recipe.
 
 ### Remotes
-Each remote consists of a a `user`, a `host` and a `root`. Optionally, you may also define the SSH `port`.
+Each remote consists of a a `user`, a `host` and a `root`. Optionally, you may also define the SSH `port` and define if the remote should be `read_only`.
 
-| Key    | Description                                    |
-| ------ | ---------------------------------------------- |
-| `user` | The username to log in to the host             |
-| `host` | The IP address of your server.                 |
-| `port` | The SSH port to use for this connection        |
-| `root` | The absolute path to the project's root folder |
+| Key         | Description                                    |
+| ----------- | ---------------------------------------------- |
+| `user`      | The username to log in to the host             |
+| `host`      | The IP address of your server.                 |
+| `port`      | The SSH port to use for this connection        |
+| `root`      | The absolute path to the project's root folder |
+| `read_only` | Set to `true` to make the remote read only     |
 
 ```php
 'remotes' => [
@@ -108,10 +110,13 @@ Each remote consists of a a `user`, a `host` and a `root`. Optionally, you may a
         'host' => '104.26.3.113',
         'port' => 1431,
         'root' => '/home/forge/statamic.com',
+        'read_only' => env('SYNC_PRODUCTION', true),
     ],
-    
+
 ],
 ```
+
+The `read_only` option comes in handy if you want to prevent pushing to a remote from a certain environment, e.g. pushing to `production` from your local environment.
 
 ### Recipes
 Add any number of recipes with the paths you want to sync. Each recipe is an array of paths relative to your project's root.
