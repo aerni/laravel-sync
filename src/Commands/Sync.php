@@ -26,6 +26,10 @@ class Sync extends BaseCommand
      */
     public function handle(): void
     {
+        if (! $this->confirm($this->confirmText(), true)) {
+            return;
+        };
+
         $commands = $this->commandGenerator()->run();
 
         $sync = SyncProcessor::commands($commands)
@@ -35,5 +39,15 @@ class Sync extends BaseCommand
         if ($sync->successful()) {
             $this->info('The sync was successful');
         }
+    }
+
+    protected function confirmText(): string
+    {
+        $operation = $this->argument('operation');
+        $recipe = $this->argument('recipe');
+        $remote = $this->argument('remote');
+        $preposition = $operation === 'pull' ? 'from' : 'to';
+
+        return "Please confirm that you want to <comment>$operation</comment> the <comment>$recipe</comment> $preposition <comment>$remote</comment>";
     }
 }
