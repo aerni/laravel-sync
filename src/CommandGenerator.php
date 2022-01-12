@@ -4,6 +4,7 @@ namespace Aerni\Sync;
 
 use Aerni\Sync\Exceptions\SyncException;
 use Facades\Aerni\Sync\PathGenerator;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
 class CommandGenerator
@@ -47,6 +48,10 @@ class CommandGenerator
             throw SyncException::samePath();
         }
 
+        if ($this->remoteIsReadOnly() && $this->operation === 'push') {
+            throw SyncException::readOnly();
+        }
+
         return $this->commandsString();
     }
 
@@ -87,6 +92,15 @@ class CommandGenerator
     protected function localPathEqualsRemotePath(): bool
     {
         if ($this->localPath(0) !== $this->remotePath(0)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function remoteIsReadOnly(): bool
+    {
+        if (! Arr::get($this->remote, 'read_only', false)) {
             return false;
         }
 

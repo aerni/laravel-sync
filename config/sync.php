@@ -19,6 +19,7 @@ return [
         //     'host' => '104.26.3.113',
         //     'port' => 1431,
         //     'root' => '/home/forge/statamic.com',
+        //     'read_only' => false,
         // ],
 
     ],
