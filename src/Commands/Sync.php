@@ -3,6 +3,7 @@
 namespace Aerni\Sync\Commands;
 
 use Facades\Aerni\Sync\SyncProcessor;
+use Illuminate\Support\Arr;
 
 class Sync extends BaseCommand
 {
@@ -11,7 +12,7 @@ class Sync extends BaseCommand
      *
      * @var string
      */
-    protected $signature = "sync";
+    protected $signature = 'sync';
 
     /**
      * The console command description.
@@ -22,13 +23,18 @@ class Sync extends BaseCommand
 
     /**
      * Execute the console command.
-     *
      */
     public function handle(): void
     {
+        if ($this->operation() === 'push' && Arr::get($this->remote(), 'read_only') === true) {
+            $this->error("You can't push to the selected target as it is configured to be read only.");
+
+            return;
+        }
+
         if (! $this->confirm($this->confirmText(), true)) {
             return;
-        };
+        }
 
         $commands = $this->commandGenerator()->run();
 
