@@ -32,17 +32,13 @@ class PathGenerator
             }
         }
 
-        return preg_replace('#/+#', '/', join('/', $paths));
+        return preg_replace('#/+#', '/', implode('/', $paths));
     }
 
     protected function remoteHostEqualsLocalHost(string $remoteHost): bool
     {
-        $ip = Http::get('https://api.ipify.org/?format=json')->json('ip');
+        $publicIp = Http::get('https://api64.ipify.org?format=json')->json('ip');
 
-        if ($ip !== $remoteHost) {
-            return false;
-        }
-
-        return true;
+        return $publicIp === $remoteHost;
     }
 }
