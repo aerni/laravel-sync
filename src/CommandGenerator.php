@@ -10,8 +10,11 @@ use Illuminate\Support\Collection;
 class CommandGenerator
 {
     protected string $operation;
+
     protected array $remote;
+
     protected array $recipe;
+
     protected string $options;
 
     public function operation(string $operation): self

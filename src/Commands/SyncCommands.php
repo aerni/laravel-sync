@@ -9,7 +9,7 @@ class SyncCommands extends BaseCommand
      *
      * @var string
      */
-    protected $signature = "sync:commands";
+    protected $signature = 'sync:commands';
 
     /**
      * The console command description.
@@ -20,7 +20,6 @@ class SyncCommands extends BaseCommand
 
     /**
      * Execute the console command.
-     *
      */
     public function handle(): void
     {
