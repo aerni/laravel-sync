@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 
 class SyncServiceProvider extends ServiceProvider
 {
-    public function boot()
+    public function boot(): void
     {
         $this->commands([
             Commands\Sync::class,
@@ -19,10 +19,5 @@ class SyncServiceProvider extends ServiceProvider
         ], 'sync-config');
 
         $this->mergeConfigFrom(__DIR__.'/../config/sync.php', 'sync');
-    }
-
-    public function register()
-    {
-        //
     }
 }

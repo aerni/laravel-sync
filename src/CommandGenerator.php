@@ -60,21 +60,18 @@ class CommandGenerator
 
     public function commandsArray(): Collection
     {
-        return collect($this->recipe)->map(function ($path, $key) {
-            return [
-                'origin' => ($this->operation === 'pull') ? $this->remotePath($key) : $this->localPath($key),
-                'target' => ($this->operation === 'pull') ? $this->localPath($key) : $this->remotePath($key),
-                'options' => $this->options,
-                'port' => $this->port(),
-            ];
-        });
+        return collect($this->recipe)->map(fn ($path, $key) => [
+            'origin' => ($this->operation === 'pull') ? $this->remotePath($key) : $this->localPath($key),
+            'target' => ($this->operation === 'pull') ? $this->localPath($key) : $this->remotePath($key),
+            'options' => $this->options,
+            'port' => $this->port(),
+        ]);
     }
 
     public function commandsString(): Collection
     {
-        return $this->commandsArray()->map(function ($command) {
-            return "rsync -e 'ssh -p {$command['port']}' {$command['options']} {$command['origin']} {$command['target']}";
-        });
+        return $this->commandsArray()
+            ->map(fn ($command) => "rsync -e 'ssh -p {$command['port']}' {$command['options']} {$command['origin']} {$command['target']}");
     }
 
     protected function port(): string
@@ -94,19 +91,11 @@ class CommandGenerator
 
     protected function localPathEqualsRemotePath(): bool
     {
-        if ($this->localPath(0) !== $this->remotePath(0)) {
-            return false;
-        }
-
-        return true;
+        return $this->localPath(0) === $this->remotePath(0);
     }
 
     protected function remoteIsReadOnly(): bool
     {
-        if (! Arr::get($this->remote, 'read_only', false)) {
-            return false;
-        }
-
-        return true;
+        return Arr::get($this->remote, 'read_only', false);
     }
 }

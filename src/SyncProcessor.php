@@ -8,9 +8,9 @@ use TitasGailius\Terminal\Terminal;
 
 class SyncProcessor
 {
-    protected $commands;
+    protected Collection $commands;
 
-    protected $artisanCommand;
+    protected Command $artisanCommand;
 
     public function commands(Collection $commands): self
     {
