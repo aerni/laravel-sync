@@ -2,6 +2,8 @@
 
 namespace Aerni\Sync\Commands;
 
+use function Laravel\Prompts\table;
+
 class SyncList extends BaseCommand
 {
     /**
@@ -23,9 +25,11 @@ class SyncList extends BaseCommand
      */
     public function handle(): void
     {
-        $headers = ['Origin', 'Target', 'Options', 'Port'];
-        $commands = $this->commandGenerator()->commandsArray();
+        $this->validate();
 
-        $this->table($headers, $commands);
+        table(
+            ['Origin', 'Target', 'Options', 'Port'],
+            $this->commands()->map->toArray()
+        );
     }
 }
