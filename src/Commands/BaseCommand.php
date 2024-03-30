@@ -2,16 +2,17 @@
 
 namespace Aerni\Sync\Commands;
 
-use Aerni\Sync\SyncCommand;
-use Illuminate\Support\Arr;
 use Aerni\Sync\PathGenerator;
+use Aerni\Sync\SyncCommand;
 use Illuminate\Console\Command;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Collection;
-use function Laravel\Prompts\select;
-use Illuminate\Support\Facades\Validator;
-use Symfony\Component\Console\Output\OutputInterface;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Symfony\Component\Console\Output\OutputInterface;
+
+use function Laravel\Prompts\select;
 
 class BaseCommand extends Command implements PromptsForMissingInput
 {
@@ -55,9 +56,9 @@ class BaseCommand extends Command implements PromptsForMissingInput
             'remote' => ['required', Rule::in(array_keys($this->remotes()))],
             'recipe' => ['required', Rule::in(array_keys($this->recipes()))],
         ], [
-            'operation.in' => "The :attribute [:input] does not exists. Valid values are [push] or [pull].",
-            'remote.in' => "The :attribute [:input] does not exists. Please choose a valid remote.",
-            'recipe.in' => "The :attribute [:input] does not exists. Please choose a valid recipe.",
+            'operation.in' => 'The :attribute [:input] does not exists. Valid values are [push] or [pull].',
+            'remote.in' => 'The :attribute [:input] does not exists. Please choose a valid remote.',
+            'recipe.in' => 'The :attribute [:input] does not exists. Please choose a valid recipe.',
         ]);
 
         if ($this->localPathEqualsRemotePath()) {

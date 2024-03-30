@@ -2,9 +2,8 @@
 
 namespace Aerni\Sync;
 
-use Stringable;
-use Aerni\Sync\PathGenerator;
 use Illuminate\Contracts\Support\Arrayable;
+use Stringable;
 
 class SyncCommand implements Arrayable, Stringable
 {
