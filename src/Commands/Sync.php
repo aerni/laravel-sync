@@ -2,9 +2,10 @@
 
 namespace Aerni\Sync\Commands;
 
-use function Laravel\Prompts\confirm;
 use Illuminate\Support\Facades\Process;
 use Symfony\Component\Console\Output\OutputInterface;
+
+use function Laravel\Prompts\confirm;
 
 class Sync extends BaseCommand
 {
