@@ -3,7 +3,7 @@
 # Laravel Sync
 This package provides a git-like artisan command to easily sync files and folders between environments. This is super useful for assets, documents, and any other files that are untracked in your git repository.
 
-Laravel Sync is a no-brainer and will soon become best friends with your deploy script. The days are over when you had to manually keep track of files and folders between your environments. Do yourself a favor and give it a try!
+Laravel Sync is a no-brainer and the perfect companion for your deploy script. The days are over when you had to manually keep track of files and folders between your environments. Do yourself a favor and give it a try!
 
 ## Requirements
 - `rsync` on both your source and destination machine
@@ -78,11 +78,7 @@ return [
     */
 
     'options' => [
-        // '--archive',
-        // '--itemize-changes',
-        // '--verbose',
-        // '--human-readable',
-        // '--progress'
+        '--archive',
     ],
 
 ];
@@ -92,7 +88,7 @@ return [
 To use this package, you have to define at least one remote and recipe.
 
 ### Remotes
-Each remote consists of a a `user`, a `host` and a `root`. Optionally, you may also define the SSH `port` and define if the remote should be `read_only`.
+Each remote consists of a `user`, `host`, and `root`. Optionally, you may also define the SSH `port` and make a remote `read_only`.
 
 | Key         | Description                                    |
 | ----------- | ---------------------------------------------- |
@@ -100,7 +96,7 @@ Each remote consists of a a `user`, a `host` and a `root`. Optionally, you may a
 | `host`      | The IP address of your server.                 |
 | `port`      | The SSH port to use for this connection        |
 | `root`      | The absolute path to the project's root folder |
-| `read_only` | Set to `true` to make the remote read only     |
+| `read_only` | Set to `true` to make the remote read-only     |
 
 ```php
 'remotes' => [
@@ -134,7 +130,6 @@ Configure the default rsync options to use when performing a sync. You can overr
 ```php
 'options' => [
     '--archive',
-    '--progress'
 ],
 ```
 
@@ -168,10 +163,11 @@ You have three commands at your disposal:
 ### Available Options
 You may use the following options:
 
-| Option                | Description                        |
-| --------------------- | ---------------------------------- |
-| `-O*` or `--option=*` | Override the default rsync options |
-| `-D` or `--dry`       | Perform a dry run of the sync      |
+| Option                | Description                                               |
+| --------------------- | --------------------------------------------------------- |
+| `-O*` or `--option=*` | Override the default rsync options                        |
+| `-D` or `--dry`       | Perform a dry run of the sync with real-time output       |
+| `-v` or `--verbose`   | Displays the real-time output of the sync in the terminal |
 
 ## Usage Examples
 
@@ -185,9 +181,14 @@ Push the assets recipe to the production remote with some custom rsync options:
 php artisan sync push production assets --option=-avh --option=--delete
 ```
 
-Perform a dry sync:
+Perform a dry run:
 ```bash
 php artisan sync pull staging assets --dry
+```
+
+Echo the real-time output of the sync in your terminal:
+```bash
+php artisan sync pull staging assets --verbose
 ```
 
 List the origin, target, options, and port in a nice table:

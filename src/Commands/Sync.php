@@ -2,8 +2,10 @@
 
 namespace Aerni\Sync\Commands;
 
-use Facades\Aerni\Sync\SyncProcessor;
-use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Process;
+use Symfony\Component\Console\Output\OutputInterface;
+
+use function Laravel\Prompts\confirm;
 
 class Sync extends BaseCommand
 {
@@ -26,25 +28,29 @@ class Sync extends BaseCommand
      */
     public function handle(): void
     {
-        if ($this->operation() === 'push' && Arr::get($this->remote(), 'read_only') === true) {
-            $this->error("You can't push to the selected target as it is configured to be read only.");
+        $this->validate();
 
+        /* Only show the confirmation if we're not performing a dry run */
+        if (! $this->option('dry') && ! confirm($this->confirmText())) {
             return;
         }
 
-        if (! $this->confirm($this->confirmText(), true)) {
-            return;
-        }
+        $this->option('dry')
+            ? $this->info('Starting a dry run ...')
+            : $this->info('Syncing files ...');
 
-        $commands = $this->commandGenerator()->run();
+        $this->commands()->each(function ($command) {
+            Process::forever()->run($command, function (string $type, string $output) {
+                /* Only show the output if we're performing a dry run or the verbosity is set to verbose */
+                if ($this->option('dry') || $this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
+                    echo $output;
+                }
+            });
+        });
 
-        $sync = SyncProcessor::commands($commands)
-            ->artisanCommand($this)
-            ->run();
-
-        if ($sync->successful()) {
-            $this->info('The sync was successful');
-        }
+        $this->option('dry')
+            ? $this->info("The dry run of the <comment>{$this->argument('recipe')}</comment> recipe was successfull.")
+            : $this->info("The sync of the <comment>{$this->argument('recipe')}</comment> recipe was successfull.");
     }
 
     protected function confirmText(): string
@@ -54,6 +60,6 @@ class Sync extends BaseCommand
         $remote = $this->argument('remote');
         $preposition = $operation === 'pull' ? 'from' : 'to';
 
-        return "Please confirm that you want to <comment>$operation</comment> the <comment>$recipe</comment> $preposition <comment>$remote</comment>";
+        return "You are about to $operation the $recipe $preposition $remote. Are you sure?";
     }
 }

@@ -23,9 +23,8 @@ class SyncCommands extends BaseCommand
      */
     public function handle(): void
     {
-        $this->commandGenerator()->commandsString()->each(function ($command) {
-            $this->info($command);
-            $this->newLine();
-        });
+        $this->validate();
+
+        $this->commands()->each(fn ($command) => $this->info($command));
     }
 }
