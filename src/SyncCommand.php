@@ -12,8 +12,7 @@ class SyncCommand implements Arrayable, Stringable
         protected string $operation,
         protected array $remote,
         protected string $options,
-    ) {
-    }
+    ) {}
 
     public function toArray(): array
     {
