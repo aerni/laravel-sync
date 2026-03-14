@@ -88,7 +88,7 @@ it('throws when local path equals remote path', function () {
         'remote' => 'production',
         'recipe' => 'assets',
     ]);
-})->throws(RuntimeException::class, "The origin and target path are one and the same.");
+})->throws(RuntimeException::class, 'The origin and target path are one and the same.');
 
 it('throws when no remotes are configured', function () {
     config()->set('sync.remotes', []);
