@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Process\FakeProcessResult;
+use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Once;
@@ -82,7 +84,7 @@ it('runs sync when user confirms', function () {
         'You are about to push the assets to production. Are you sure?',
         'yes',
     )->expectsOutputToContain('Syncing files')
-     ->expectsOutputToContain('The sync of the');
+        ->expectsOutputToContain('The sync of the');
 
     Process::assertRan(fn ($process) => str_contains($process->command, 'rsync'));
 });
@@ -99,8 +101,8 @@ it('uses the correct confirmation text for pull', function () {
 });
 
 it('shows process output in verbose mode without dry run', function () {
-    $fakeResult = new \Illuminate\Process\FakeProcessResult(exitCode: 0, output: 'rsync output');
-    $fakePending = Mockery::mock(\Illuminate\Process\PendingProcess::class);
+    $fakeResult = new FakeProcessResult(exitCode: 0, output: 'rsync output');
+    $fakePending = Mockery::mock(PendingProcess::class);
     $fakePending->shouldReceive('forever')->andReturnSelf();
     $fakePending->shouldReceive('run')->andReturnUsing(function ($command, $callback) use ($fakeResult) {
         if ($callback) {
@@ -121,7 +123,7 @@ it('shows process output in verbose mode without dry run', function () {
         'You are about to push the assets to production. Are you sure?',
         'yes',
     )->expectsOutputToContain('Syncing files')
-     ->assertSuccessful();
+        ->assertSuccessful();
 });
 
 it('prompts for missing arguments interactively', function () {
