@@ -1,5 +1,6 @@
 <?php
 
+use Aerni\Sync\Commands\BaseCommand;
 use Illuminate\Process\FakeProcessResult;
 use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\Http;
@@ -48,7 +49,7 @@ it('displays dry run messages', function () {
     $this->artisan('sync', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
         '--dry' => true,
     ])->expectsOutputToContain('Starting a dry run');
 });
@@ -57,7 +58,7 @@ it('displays dry run success message', function () {
     $this->artisan('sync', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
         '--dry' => true,
     ])->expectsOutputToContain('The dry run of the');
 });
@@ -66,7 +67,7 @@ it('aborts when user declines confirmation', function () {
     $this->artisan('sync', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ])->expectsConfirmation(
         'You are about to push the assets to production. Are you sure?',
         'no',
@@ -79,7 +80,7 @@ it('runs sync when user confirms', function () {
     $this->artisan('sync', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ])->expectsConfirmation(
         'You are about to push the assets to production. Are you sure?',
         'yes',
@@ -93,7 +94,7 @@ it('uses the correct confirmation text for pull', function () {
     $this->artisan('sync', [
         'operation' => 'pull',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ])->expectsConfirmation(
         'You are about to pull the assets from production. Are you sure?',
         'yes',
@@ -117,7 +118,7 @@ it('shows process output in verbose mode without dry run', function () {
     $this->artisan('sync', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
         '-v' => true,
     ])->expectsConfirmation(
         'You are about to push the assets to production. Are you sure?',
@@ -130,8 +131,41 @@ it('prompts for missing arguments interactively', function () {
     $this->artisan('sync', ['--dry' => true])
         ->expectsChoice('Choose if you want to push or pull', 'push', ['push', 'pull'])
         ->expectsChoice('Choose the remote you want to sync with', 'production', ['production'])
-        ->expectsChoice('Choose the recipe defining the paths to sync', 'assets', ['assets'])
+        ->expectsChoice('Choose the recipes defining the paths to sync', ['assets'], ['assets'])
+        ->expectsChoice('Choose rsync options', ['--archive'], array_merge(array_keys(BaseCommand::RSYNC_OPTIONS), array_values(BaseCommand::RSYNC_OPTIONS)))
         ->assertSuccessful();
 
     Process::assertRan(fn ($process) => str_contains($process->command, 'rsync'));
+});
+
+it('runs rsync for paths from multiple recipes', function () {
+    config()->set('sync.recipes', [
+        'assets' => ['storage/app/assets/'],
+        'uploads' => ['storage/app/uploads/'],
+    ]);
+
+    $this->withoutMockingConsoleOutput()
+        ->artisan('sync push production assets uploads --dry');
+
+    $localAssets = base_path('storage/app/assets/');
+    $localUploads = base_path('storage/app/uploads/');
+
+    Process::assertRan(fn ($process) => str_contains($process->command, $localAssets));
+    Process::assertRan(fn ($process) => str_contains($process->command, $localUploads));
+});
+
+it('uses the correct confirmation text for multiple recipes', function () {
+    config()->set('sync.recipes', [
+        'assets' => ['storage/app/assets/'],
+        'uploads' => ['storage/app/uploads/'],
+    ]);
+
+    $this->artisan('sync', [
+        'operation' => 'push',
+        'remote' => 'production',
+        'recipe' => ['assets', 'uploads'],
+    ])->expectsConfirmation(
+        'You are about to push the assets and uploads to production. Are you sure?',
+        'yes',
+    )->assertSuccessful();
 });

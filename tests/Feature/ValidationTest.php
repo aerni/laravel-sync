@@ -34,7 +34,7 @@ it('validates that operation must be push or pull', function () {
     $this->artisan('sync:commands', [
         'operation' => 'invalid',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ]);
 })->throws(ValidationException::class);
 
@@ -44,7 +44,7 @@ it('validates that remote must exist in config', function () {
     $this->artisan('sync:commands', [
         'operation' => 'push',
         'remote' => 'nonexistent',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ]);
 })->throws(ValidationException::class);
 
@@ -54,7 +54,17 @@ it('validates that recipe must exist in config', function () {
     $this->artisan('sync:commands', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'nonexistent',
+        'recipe' => ['nonexistent'],
+    ]);
+})->throws(ValidationException::class);
+
+it('validates that all recipes must exist in config', function () {
+    Http::fake(['api.ipify.org/*' => Http::response(['ip' => '1.2.3.4'])]);
+
+    $this->artisan('sync:commands', [
+        'operation' => 'push',
+        'remote' => 'production',
+        'recipe' => ['assets', 'nonexistent'],
     ]);
 })->throws(ValidationException::class);
 
@@ -64,7 +74,7 @@ it('throws when pushing to a read-only remote', function () {
     $this->artisan('sync:commands', [
         'operation' => 'push',
         'remote' => 'staging',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ]);
 })->throws(RuntimeException::class, "You can't push to the selected target as it is configured to be read-only.");
 
@@ -74,7 +84,7 @@ it('allows pulling from a read-only remote', function () {
     $this->artisan('sync:commands', [
         'operation' => 'pull',
         'remote' => 'staging',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ])->assertSuccessful();
 });
 
@@ -86,7 +96,7 @@ it('throws when local path equals remote path', function () {
     $this->artisan('sync:commands', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ]);
 })->throws(RuntimeException::class, 'The origin and target path are one and the same.');
 
@@ -96,7 +106,7 @@ it('throws when no remotes are configured', function () {
     $this->artisan('sync:commands', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ]);
 })->throws(RuntimeException::class, 'You need to define at least one remote in your config file.');
 
@@ -106,6 +116,6 @@ it('throws when no recipes are configured', function () {
     $this->artisan('sync:commands', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ]);
 })->throws(RuntimeException::class, 'You need to define at least one recipe in your config file.');

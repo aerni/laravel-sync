@@ -28,7 +28,7 @@ it('executes successfully for a push operation', function () {
     $this->artisan('sync:list', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ])->assertSuccessful();
 });
 
@@ -36,6 +36,6 @@ it('executes successfully for a pull operation', function () {
     $this->artisan('sync:list', [
         'operation' => 'pull',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ])->assertSuccessful();
 });

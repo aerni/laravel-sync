@@ -29,7 +29,7 @@ it('outputs one rsync command per recipe path', function () {
     $this->artisan('sync:commands', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ])
         ->expectsOutputToContain("rsync -e 'ssh -p 1431' --archive {$localAssets} forge@104.26.3.113:/home/forge/site.com/storage/app/assets/")
         ->expectsOutputToContain("rsync -e 'ssh -p 1431' --archive {$localImg} forge@104.26.3.113:/home/forge/site.com/storage/app/img/")
@@ -46,7 +46,7 @@ it('outputs the correct rsync command format for pull', function () {
     $this->artisan('sync:commands', [
         'operation' => 'pull',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ])
         ->expectsOutputToContain("rsync -e 'ssh -p 1431' --archive forge@104.26.3.113:/home/forge/site.com/storage/app/assets/ {$localAssets}")
         ->assertSuccessful();

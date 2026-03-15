@@ -28,7 +28,7 @@ it('uses default config options when no CLI options are provided', function () {
     $this->artisan('sync:commands', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
     ])->expectsOutputToContain('--archive');
 });
 
@@ -36,7 +36,7 @@ it('uses CLI options when provided', function () {
     $this->artisan('sync:commands', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
         '--option' => ['--compress', '--verbose'],
     ])->expectsOutputToContain('--compress --verbose');
 });
@@ -45,7 +45,7 @@ it('adds dry-run flags when the dry option is set', function () {
     $this->artisan('sync:commands', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
         '--dry' => true,
     ])->expectsOutputToContain('--dry-run');
 });
@@ -56,7 +56,7 @@ it('deduplicates options', function () {
     $this->artisan('sync:commands', [
         'operation' => 'push',
         'remote' => 'production',
-        'recipe' => 'assets',
+        'recipe' => ['assets'],
         '--option' => ['--archive', '--archive'],
     ])->expectsOutputToContain("--archive {$localPath}");
 });
