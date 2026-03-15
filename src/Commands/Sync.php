@@ -49,10 +49,11 @@ class Sync extends BaseCommand
         });
 
         $recipes = $this->recipeNames();
+        $label = count($this->selectedRecipes()) === 1 ? 'recipe' : 'recipes';
 
         $this->option('dry')
-            ? $this->info("The dry run of the <comment>{$recipes}</comment> recipe was successfull.")
-            : $this->info("The sync of the <comment>{$recipes}</comment> recipe was successfull.");
+            ? $this->info("The dry run of the <comment>{$recipes}</comment> {$label} was successful.")
+            : $this->info("The sync of the <comment>{$recipes}</comment> {$label} was successful.");
     }
 
     protected function confirmText(): string
