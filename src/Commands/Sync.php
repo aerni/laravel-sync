@@ -48,18 +48,25 @@ class Sync extends BaseCommand
             });
         });
 
+        $recipes = $this->recipeNames();
+
         $this->option('dry')
-            ? $this->info("The dry run of the <comment>{$this->argument('recipe')}</comment> recipe was successfull.")
-            : $this->info("The sync of the <comment>{$this->argument('recipe')}</comment> recipe was successfull.");
+            ? $this->info("The dry run of the <comment>{$recipes}</comment> recipe was successfull.")
+            : $this->info("The sync of the <comment>{$recipes}</comment> recipe was successfull.");
     }
 
     protected function confirmText(): string
     {
         $operation = $this->argument('operation');
-        $recipe = $this->argument('recipe');
+        $recipes = $this->recipeNames();
         $remote = $this->argument('remote');
         $preposition = $operation === 'pull' ? 'from' : 'to';
 
-        return "You are about to $operation the $recipe $preposition $remote. Are you sure?";
+        return "You are about to $operation the $recipes $preposition $remote. Are you sure?";
+    }
+
+    protected function recipeNames(): string
+    {
+        return collect($this->selectedRecipes())->join(', ', ' and ');
     }
 }

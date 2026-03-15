@@ -10,18 +10,40 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
 
 class BaseCommand extends Command implements PromptsForMissingInput
 {
+    public const RSYNC_OPTIONS = [
+        '--archive' => 'Archive mode (equals -rlptgoD)',
+        '--compress' => 'Compress file data during transfer',
+        '--verbose' => 'Increase verbosity',
+        '--progress' => 'Show progress during transfer',
+        '--human-readable' => 'Output numbers in a human-readable format',
+        '--delete' => 'Delete extraneous files from destination',
+        '--delete-after' => 'Delete after transfer, not during',
+        '--dry-run' => 'Perform a trial run with no changes made',
+        '--stats' => 'Give some file-transfer stats',
+        '--partial' => 'Keep partially transferred files',
+        '--checksum' => 'Skip based on checksum, not mod-time & size',
+        '--update' => 'Skip files newer on the receiver',
+        '--copy-links' => 'Transform symlinks into referent files',
+        '--no-perms' => 'Do not preserve permissions',
+        '--no-owner' => 'Do not preserve owner',
+        '--no-group' => 'Do not preserve group',
+        '--itemize-changes' => 'Output a change-summary for all updates',
+    ];
+
     public function __construct()
     {
         $baseSignature = '
             {operation : Choose if you want to push or pull}
             {remote : The remote you want to sync with}
-            {recipe : The recipe defining the paths to sync}
+            {recipe?* : The recipes defining the paths to sync}
             {--O|option=* : An rsync option to use}
             {--D|dry : Perform a dry run of the sync}
         ';
@@ -42,23 +64,53 @@ class BaseCommand extends Command implements PromptsForMissingInput
                 label: 'Choose the remote you want to sync with',
                 options: array_keys($this->remotes()),
             ),
-            'recipe' => fn () => select(
-                label: 'Choose the recipe defining the paths to sync',
-                options: array_keys($this->recipes()),
-            ),
         ];
+    }
+
+    protected function interact(InputInterface $input, OutputInterface $output): void
+    {
+        parent::interact($input, $output);
+
+        $isInteractive = empty($input->getArgument('recipe'));
+
+        if ($isInteractive) {
+            $input->setArgument('recipe', multiselect(
+                label: 'Choose the recipes defining the paths to sync',
+                options: array_keys($this->recipes()),
+                required: 'You must select at least one recipe.',
+            ));
+
+            if (empty($input->getOption('option'))) {
+                $configOptions = config('sync.options', []);
+                $default = array_values(array_intersect($configOptions, array_keys(self::RSYNC_OPTIONS)));
+
+                $input->setOption('option', multiselect(
+                    label: 'Choose rsync options',
+                    options: self::RSYNC_OPTIONS,
+                    default: $default,
+                    hint: 'Config defaults are pre-selected. Use space to toggle.',
+                ));
+            }
+        }
     }
 
     protected function validate(): void
     {
-        Validator::validate($this->arguments(), [
+        Validator::validate([
+            'operation' => $this->operation(),
+            'remote' => $this->argument('remote'),
+            'recipe' => $this->selectedRecipes(),
+        ], [
             'operation' => 'required|in:push,pull',
             'remote' => ['required', Rule::in(array_keys($this->remotes()))],
-            'recipe' => ['required', Rule::in(array_keys($this->recipes()))],
+            'recipe' => 'required|array|min:1',
+            'recipe.*' => [Rule::in(array_keys($this->recipes()))],
         ], [
             'operation.in' => 'The :attribute [:input] does not exists. Valid values are [push] or [pull].',
             'remote.in' => 'The :attribute [:input] does not exists. Please choose a valid remote.',
-            'recipe.in' => 'The :attribute [:input] does not exists. Please choose a valid recipe.',
+            'recipe.required' => 'You must provide at least one recipe.',
+            'recipe.min' => 'You must provide at least one recipe.',
+            'recipe.*.in' => 'The recipe [:input] does not exist. Please choose a valid recipe.',
         ]);
 
         if ($this->localPathEqualsRemotePath()) {
@@ -72,8 +124,9 @@ class BaseCommand extends Command implements PromptsForMissingInput
 
     protected function localPathEqualsRemotePath(): bool
     {
-        return PathGenerator::localPath($this->recipe()[0])
-            === PathGenerator::remotePath($this->remote(), $this->recipe()[0]);
+        return collect($this->recipePaths())->contains(
+            fn ($path) => PathGenerator::localPath($path) === PathGenerator::remotePath($this->remote(), $path)
+        );
     }
 
     protected function remoteIsReadOnly(): bool
@@ -83,7 +136,7 @@ class BaseCommand extends Command implements PromptsForMissingInput
 
     protected function commands(): Collection
     {
-        return collect($this->recipe())
+        return collect($this->recipePaths())
             ->map(fn ($path) => new SyncCommand(
                 path: $path,
                 operation: $this->operation(),
@@ -102,9 +155,20 @@ class BaseCommand extends Command implements PromptsForMissingInput
         return Arr::get($this->remotes(), $this->argument('remote'));
     }
 
-    protected function recipe(): array
+    protected function selectedRecipes(): array
     {
-        return Arr::get($this->recipes(), $this->argument('recipe'));
+        return (array) $this->argument('recipe');
+    }
+
+    protected function recipePaths(): array
+    {
+        $recipes = $this->recipes();
+
+        return collect($this->selectedRecipes())
+            ->flatMap(fn ($name) => Arr::get($recipes, $name, []))
+            ->unique()
+            ->values()
+            ->all();
     }
 
     protected function remotes(): array
