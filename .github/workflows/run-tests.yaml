@@ -33,6 +33,7 @@ jobs:
       - name: Install dependencies
         run: |
           composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update
+          composer install --no-interaction
 
       - name: Run tests
         run: vendor/bin/phpunit
