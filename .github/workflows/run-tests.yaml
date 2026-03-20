@@ -11,14 +11,13 @@ jobs:
         os: [ubuntu-latest]
         php: [8.2, 8.3, 8.4, 8.5]
         laravel: [11.*, 12.*, 13.*]
-        stability: [prefer-lowest, prefer-stable]
         exclude:
           - laravel: 11.*
             php: 8.5
           - laravel: 13.*
             php: 8.2
 
-    name: PHP ${{ matrix.php }} – Laravel ${{ matrix.laravel }} - ${{ matrix.stability }}
+    name: PHP ${{ matrix.php }} – Laravel ${{ matrix.laravel }}
 
     steps:
       - name: Checkout code
@@ -34,7 +33,6 @@ jobs:
       - name: Install dependencies
         run: |
           composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update
-          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
 
       - name: Run tests
         run: vendor/bin/phpunit
