@@ -23,8 +23,8 @@ class BaseCommand extends Command implements PromptsForMissingInput
         '--compress' => 'Compress file data during transfer (-z, --compress)',
         '--verbose' => 'Increase verbosity (-v, --verbose)',
         '--progress' => 'Show progress during transfer (--progress)',
-        '--dry-run' => 'Perform a trial run with no changes made (-n, --dry-run)',
         '--delete' => 'Delete extraneous files from destination (--delete)',
+        '--dry-run' => 'Perform a trial run with no changes made (-n, --dry-run)',
         '--stats' => 'Give some file-transfer stats (--stats)',
         '--human-readable' => 'Output numbers in a human-readable format (-h, --human-readable)',
         '--delete-after' => 'Delete after transfer, not during (--delete-after)',
@@ -84,9 +84,12 @@ class BaseCommand extends Command implements PromptsForMissingInput
                 $configOptions = config('sync.options', []);
                 $default = array_values(array_intersect($configOptions, array_keys(self::RSYNC_OPTIONS)));
 
+                $defaultOptions = array_intersect_key(self::RSYNC_OPTIONS, array_flip($default));
+                $options = array_merge($defaultOptions, array_diff_key(self::RSYNC_OPTIONS, $defaultOptions));
+
                 $input->setOption('option', multiselect(
                     label: 'Choose rsync options',
-                    options: self::RSYNC_OPTIONS,
+                    options: $options,
                     default: $default,
                     hint: 'Config defaults are pre-selected. Use space to toggle.',
                 ));
