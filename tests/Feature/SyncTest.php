@@ -127,6 +127,64 @@ it('shows process output in verbose mode without dry run', function () {
         ->assertSuccessful();
 });
 
+it('streams process output when output-producing rsync option is selected', function (string $option) {
+    $fakeResult = new FakeProcessResult(exitCode: 0, output: 'rsync output');
+    $fakePending = Mockery::mock(PendingProcess::class);
+    $fakePending->shouldReceive('forever')->andReturnSelf();
+    $fakePending->shouldReceive('run')->andReturnUsing(function ($command, $callback) use ($fakeResult) {
+        if ($callback) {
+            $callback('out', 'rsync output');
+        }
+
+        return $fakeResult;
+    });
+
+    Process::swap($fakePending);
+
+    ob_start();
+    $this->artisan('sync', [
+        'operation' => 'push',
+        'remote' => 'production',
+        'recipe' => ['assets'],
+        '--option' => [$option],
+    ])->expectsConfirmation(
+        'You are about to push the assets to production. Are you sure?',
+        'yes',
+    )->assertSuccessful();
+    $captured = ob_get_clean();
+
+    expect($captured)->toContain('rsync output');
+})->with(['--verbose', '--progress', '--stats', '--itemize-changes', '--human-readable']);
+
+it('does not stream process output when no output-producing rsync options are selected', function () {
+    $fakeResult = new FakeProcessResult(exitCode: 0, output: 'rsync output');
+    $fakePending = Mockery::mock(PendingProcess::class);
+    $fakePending->shouldReceive('forever')->andReturnSelf();
+    $fakePending->shouldReceive('run')->andReturnUsing(function ($command, $callback) use ($fakeResult) {
+        if ($callback) {
+            $callback('out', 'rsync output');
+        }
+
+        return $fakeResult;
+    });
+
+    Process::swap($fakePending);
+
+    ob_start();
+    $this->artisan('sync', [
+        'operation' => 'push',
+        'remote' => 'production',
+        'recipe' => ['assets'],
+        '--option' => ['--archive'],
+    ])->expectsConfirmation(
+        'You are about to push the assets to production. Are you sure?',
+        'yes',
+    )->assertSuccessful();
+    $captured = ob_get_clean();
+
+    expect($captured)->not->toContain('rsync output');
+});
+
 it('prompts for missing arguments interactively', function () {
     $this->artisan('sync', ['--dry' => true])
         ->expectsChoice('Choose if you want to push or pull', 'push', ['push', 'pull'])
