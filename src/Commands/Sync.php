@@ -4,7 +4,6 @@ namespace Aerni\Sync\Commands;
 
 use Illuminate\Support\Facades\Process;
 use Symfony\Component\Console\Output\OutputInterface;
-
 use function Laravel\Prompts\confirm;
 
 class Sync extends BaseCommand
@@ -41,8 +40,7 @@ class Sync extends BaseCommand
 
         $this->commands()->each(function ($command) {
             Process::forever()->run($command, function (string $type, string $output) {
-                /* Only show the output if we're performing a dry run or the verbosity is set to verbose */
-                if ($this->option('dry') || $this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
+                if ($this->shouldStreamOutput()) {
                     echo $output;
                 }
             });
@@ -54,6 +52,40 @@ class Sync extends BaseCommand
         $this->option('dry')
             ? $this->info("The dry run of the <comment>{$recipes}</comment> {$label} was successful.")
             : $this->info("The sync of the <comment>{$recipes}</comment> {$label} was successful.");
+    }
+
+    protected function shouldStreamOutput(): bool
+    {
+        if ($this->option('dry')) {
+            return true;
+        }
+
+        if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
+            return true;
+        }
+
+        return $this->hasOutputProducingOption();
+    }
+
+    protected function hasOutputProducingOption(): bool
+    {
+        $options = $this->rsyncOptions();
+
+        $producers = [
+            '--verbose', '-v',
+            '--progress', '-P',
+            '--stats',
+            '--itemize-changes', '-i',
+            '--human-readable',
+        ];
+
+        foreach ($producers as $flag) {
+            if (preg_match('/(^|\s)'.preg_quote($flag, '/').'(\s|$)/', $options)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected function confirmText(): string
