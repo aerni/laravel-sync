@@ -189,11 +189,28 @@ it('prompts for missing arguments interactively', function () {
     $this->artisan('sync', ['--dry' => true])
         ->expectsChoice('Choose if you want to push or pull', 'push', ['push', 'pull'])
         ->expectsChoice('Choose the remote you want to sync with', 'production', ['production'])
-        ->expectsChoice('Choose the recipes defining the paths to sync', ['assets'], ['assets'])
+        ->expectsChoice('Choose the recipes defining the paths to sync', ['assets'], ['All recipes', '__all__', 'assets', 'assets'])
         ->expectsChoice('Choose rsync options', ['--archive'], array_merge(array_keys(BaseCommand::RSYNC_OPTIONS), array_values(BaseCommand::RSYNC_OPTIONS)))
         ->assertSuccessful();
 
     Process::assertRan(fn ($process) => str_contains($process->command, 'rsync'));
+});
+
+it('expands all recipes when the all sentinel is selected interactively', function () {
+    config()->set('sync.recipes', [
+        'assets' => ['storage/app/assets/'],
+        'uploads' => ['storage/app/uploads/'],
+    ]);
+
+    $this->artisan('sync', ['--dry' => true])
+        ->expectsChoice('Choose if you want to push or pull', 'push', ['push', 'pull'])
+        ->expectsChoice('Choose the remote you want to sync with', 'production', ['production'])
+        ->expectsChoice('Choose the recipes defining the paths to sync', ['__all__'], ['All recipes', '__all__', 'assets', 'assets', 'uploads', 'uploads'])
+        ->expectsChoice('Choose rsync options', ['--archive'], array_merge(array_keys(BaseCommand::RSYNC_OPTIONS), array_values(BaseCommand::RSYNC_OPTIONS)))
+        ->assertSuccessful();
+
+    Process::assertRan(fn ($process) => str_contains($process->command, base_path('storage/app/assets/')));
+    Process::assertRan(fn ($process) => str_contains($process->command, base_path('storage/app/uploads/')));
 });
 
 it('runs rsync for paths from multiple recipes', function () {

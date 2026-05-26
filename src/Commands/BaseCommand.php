@@ -18,6 +18,8 @@ use function Laravel\Prompts\select;
 
 class BaseCommand extends Command implements PromptsForMissingInput
 {
+    public const ALL_RECIPES = '__all__';
+
     public const RSYNC_OPTIONS = [
         '--archive' => 'Archive mode (-a, --archive)',
         '--compress' => 'Compress file data during transfer (-z, --compress)',
@@ -74,11 +76,24 @@ class BaseCommand extends Command implements PromptsForMissingInput
         $isInteractive = empty($input->getArgument('recipe'));
 
         if ($isInteractive) {
-            $input->setArgument('recipe', multiselect(
+            $recipeKeys = array_keys($this->recipes());
+            $recipeOptions = array_merge(
+                [self::ALL_RECIPES => 'All recipes'],
+                array_combine($recipeKeys, $recipeKeys),
+            );
+
+            $selected = multiselect(
                 label: 'Choose the recipes defining the paths to sync',
-                options: array_keys($this->recipes()),
+                options: $recipeOptions,
                 required: 'You must select at least one recipe.',
-            ));
+                hint: "Select 'All recipes' to choose every recipe.",
+            );
+
+            if (in_array(self::ALL_RECIPES, $selected, true)) {
+                $selected = $recipeKeys;
+            }
+
+            $input->setArgument('recipe', $selected);
 
             if (empty($input->getOption('option'))) {
                 $configOptions = config('sync.options', []);
