@@ -15,6 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
+use function Laravel\Prompts\text;
 
 class BaseCommand extends Command implements PromptsForMissingInput
 {
@@ -38,6 +39,9 @@ class BaseCommand extends Command implements PromptsForMissingInput
         '--no-perms' => 'Do not preserve permissions (--no-perms)',
         '--no-owner' => 'Do not preserve owner (--no-owner)',
         '--no-group' => 'Do not preserve group (--no-group)',
+        '--backup' => 'Make backups of pre-existing destination files (-b, --backup)',
+        '--backup-dir' => 'Directory for backup files (--backup-dir=DIR)',
+        '--suffix' => 'Backup filename suffix (--suffix=SUFFIX, default ~)',
     ];
 
     public function __construct()
@@ -102,12 +106,39 @@ class BaseCommand extends Command implements PromptsForMissingInput
                 $defaultOptions = array_intersect_key(self::RSYNC_OPTIONS, array_flip($default));
                 $options = array_merge($defaultOptions, array_diff_key(self::RSYNC_OPTIONS, $defaultOptions));
 
-                $input->setOption('option', multiselect(
+                $selected = multiselect(
                     label: 'Choose rsync options',
                     options: $options,
                     default: $default,
                     hint: 'Config defaults are pre-selected. Use space to toggle.',
-                ));
+                );
+
+                if (in_array('--backup-dir', $selected, true)) {
+                    $dir = text(
+                        label: 'Backup directory',
+                        default: config('sync.backup.dir', ''),
+                        required: true,
+                        hint: 'Use {date} or {timestamp} as placeholders.',
+                    );
+                    $selected = array_map(
+                        fn ($o) => $o === '--backup-dir' ? "--backup-dir={$dir}" : $o,
+                        $selected,
+                    );
+                }
+
+                if (in_array('--suffix', $selected, true)) {
+                    $suffix = text(
+                        label: 'Backup suffix',
+                        default: '~',
+                        required: true,
+                    );
+                    $selected = array_map(
+                        fn ($o) => $o === '--suffix' ? "--suffix={$suffix}" : $o,
+                        $selected,
+                    );
+                }
+
+                $input->setOption('option', $selected);
             }
         }
     }
@@ -228,8 +259,18 @@ class BaseCommand extends Command implements PromptsForMissingInput
                 $this->output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE,
                 fn ($collection) => $collection->merge(['--human-readable', '--progress', '--stats', '--verbose'])
             )
+            ->map(fn ($o) => $this->resolvePlaceholders($o))
             ->filter()
             ->unique()
             ->implode(' ');
+    }
+
+    protected function resolvePlaceholders(string $option): string
+    {
+        return str_replace(
+            ['{date}', '{timestamp}'],
+            [now()->format('Y-m-d'), now()->format('Y-m-d_H-i-s')],
+            $option,
+        );
     }
 }

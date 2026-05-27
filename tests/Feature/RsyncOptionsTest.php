@@ -50,6 +50,75 @@ it('adds dry-run flags when the dry option is set', function () {
     ])->expectsOutputToContain('--dry-run');
 });
 
+it('does not add backup flags when no backup option is passed', function () {
+    $this->artisan('sync:commands', [
+        'operation' => 'push',
+        'remote' => 'production',
+        'recipe' => ['assets'],
+    ])->doesntExpectOutputToContain('--backup');
+});
+
+it('includes --backup when passed via -O', function () {
+    $this->artisan('sync:commands', [
+        'operation' => 'push',
+        'remote' => 'production',
+        'recipe' => ['assets'],
+        '--option' => ['--backup'],
+    ])->expectsOutputToContain('--backup');
+});
+
+it('includes --backup-dir when passed via -O', function () {
+    $this->artisan('sync:commands', [
+        'operation' => 'push',
+        'remote' => 'production',
+        'recipe' => ['assets'],
+        '--option' => ['--backup', '--backup-dir=backups/manual'],
+    ])->expectsOutputToContain('--backup --backup-dir=backups/manual');
+});
+
+it('includes --suffix when passed via -O', function () {
+    $this->artisan('sync:commands', [
+        'operation' => 'push',
+        'remote' => 'production',
+        'recipe' => ['assets'],
+        '--option' => ['--backup', '--suffix=.bak'],
+    ])->expectsOutputToContain('--backup --suffix=.bak');
+});
+
+it('interpolates {date} placeholder in -O backup-dir', function () {
+    $expected = 'backups/'.now()->format('Y-m-d');
+
+    $this->artisan('sync:commands', [
+        'operation' => 'push',
+        'remote' => 'production',
+        'recipe' => ['assets'],
+        '--option' => ['--backup', '--backup-dir=backups/{date}'],
+    ])->expectsOutputToContain("--backup-dir={$expected}");
+});
+
+it('interpolates {timestamp} placeholder in -O backup-dir', function () {
+    $expected = 'backups/'.now()->format('Y-m-d_H-i-s');
+
+    $this->artisan('sync:commands', [
+        'operation' => 'push',
+        'remote' => 'production',
+        'recipe' => ['assets'],
+        '--option' => ['--backup', '--backup-dir=backups/{timestamp}'],
+    ])->expectsOutputToContain("--backup-dir={$expected}");
+});
+
+it('interpolates {timestamp} placeholder in config sync.options', function () {
+    config()->set('sync.options', ['--backup', '--backup-dir=backups/{timestamp}']);
+
+    $expected = 'backups/'.now()->format('Y-m-d_H-i-s');
+
+    $this->artisan('sync:commands', [
+        'operation' => 'push',
+        'remote' => 'production',
+        'recipe' => ['assets'],
+    ])->expectsOutputToContain("--backup-dir={$expected}");
+});
+
 it('deduplicates options', function () {
     $localPath = base_path('storage/app/assets/');
 

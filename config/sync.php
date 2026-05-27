@@ -54,4 +54,21 @@ return [
         '--archive',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Backup
+    |--------------------------------------------------------------------------
+    |
+    | Configure rsync's built-in backup feature. When enabled, pre-existing
+    | destination files are renamed instead of overwritten or deleted.
+    | Useful when combined with the --delete option.
+    |
+    | Supported placeholders in 'dir': {date} (Y-m-d), {timestamp} (Y-m-d_H-i-s)
+    |
+    */
+
+    'backup' => [
+        'dir' => 'backups/{timestamp}',
+    ],
+
 ];
