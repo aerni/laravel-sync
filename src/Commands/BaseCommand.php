@@ -20,6 +20,8 @@ class BaseCommand extends Command implements PromptsForMissingInput
 {
     public const ALL_RECIPES = '__all__';
 
+    private bool $optionsSetInteractively = false;
+
     public const RSYNC_OPTIONS = [
         '--archive' => 'Archive mode (-a, --archive)',
         '--compress' => 'Compress file data during transfer (-z, --compress)',
@@ -108,6 +110,8 @@ class BaseCommand extends Command implements PromptsForMissingInput
                     default: $default,
                     hint: 'Config defaults are pre-selected. Use space to toggle.',
                 ));
+
+                $this->optionsSetInteractively = true;
             }
         }
     }
@@ -215,7 +219,7 @@ class BaseCommand extends Command implements PromptsForMissingInput
     {
         $options = $this->option('option');
 
-        if (empty($options)) {
+        if (! $this->optionsSetInteractively && empty($options)) {
             $options = config('sync.options');
         }
 
