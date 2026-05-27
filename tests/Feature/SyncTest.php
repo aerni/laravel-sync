@@ -189,7 +189,7 @@ it('prompts for missing arguments interactively', function () {
     $this->artisan('sync', ['--dry' => true])
         ->expectsChoice('Choose if you want to push or pull', 'push', ['push', 'pull'])
         ->expectsChoice('Choose the remote you want to sync with', 'production', ['production'])
-        ->expectsChoice('Choose the recipes defining the paths to sync', ['assets'], ['All recipes', '__all__', 'assets', 'assets'])
+        ->expectsChoice('Choose the recipes defining the paths to sync', ['assets'], ['All recipes', BaseCommand::ALL_RECIPES, 'assets', 'assets'])
         ->expectsChoice('Choose rsync options', ['--archive'], array_merge(array_keys(BaseCommand::RSYNC_OPTIONS), array_values(BaseCommand::RSYNC_OPTIONS)))
         ->assertSuccessful();
 
@@ -205,7 +205,7 @@ it('expands all recipes when the all sentinel is selected interactively', functi
     $this->artisan('sync', ['--dry' => true])
         ->expectsChoice('Choose if you want to push or pull', 'push', ['push', 'pull'])
         ->expectsChoice('Choose the remote you want to sync with', 'production', ['production'])
-        ->expectsChoice('Choose the recipes defining the paths to sync', ['__all__'], ['All recipes', '__all__', 'assets', 'assets', 'uploads', 'uploads'])
+        ->expectsChoice('Choose the recipes defining the paths to sync', [BaseCommand::ALL_RECIPES], ['All recipes', BaseCommand::ALL_RECIPES, 'assets', 'assets', 'uploads', 'uploads'])
         ->expectsChoice('Choose rsync options', ['--archive'], array_merge(array_keys(BaseCommand::RSYNC_OPTIONS), array_values(BaseCommand::RSYNC_OPTIONS)))
         ->assertSuccessful();
 
