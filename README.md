@@ -81,10 +81,6 @@ return [
         '--archive',
     ],
 
-    'backup' => [
-        'dir' => 'backups/{timestamp}',
-    ],
-
 ];
 ```
 
@@ -134,32 +130,6 @@ Configure the default rsync options to use when performing a sync. You can overr
 ```php
 'options' => [
     '--archive',
-],
-```
-
-### Backup
-Enable rsync's built-in backup feature to rename pre-existing destination files instead of overwriting or deleting them. Especially useful when combined with `--delete`.
-
-```php
-'backup' => [
-    'dir' => 'backups/{timestamp}',
-],
-```
-
-`backup.dir` is the default value for the `--backup-dir` text prompt in interactive mode. The following placeholders are resolved at runtime in any option containing them:
-
-| Placeholder     | Resolves to                |
-| --------------- | -------------------------- |
-| `{date}`        | `2026-05-27`               |
-| `{timestamp}`   | `2026-05-27_14-30-00`      |
-
-To enable backup by default for every sync, add the flags to `sync.options`:
-
-```php
-'options' => [
-    '--archive',
-    '--backup',
-    '--backup-dir=backups/{timestamp}',
 ],
 ```
 
@@ -229,14 +199,4 @@ php artisan sync:list pull staging assets
 List all rsync commands:
 ```bash
 php artisan sync:commands pull staging assets
-```
-
-Pull assets with backup of any files that would be overwritten:
-```bash
-php artisan sync pull production assets -O --backup -O --backup-dir=backups/{timestamp}
-```
-
-Pull with delete and backup (safe cleanup — overwrites backed up before removal):
-```bash
-php artisan sync pull production assets -O --archive -O --delete -O --backup -O --backup-dir=backups/{date}
 ```
