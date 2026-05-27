@@ -50,7 +50,6 @@ it('adds dry-run flags when the dry option is set', function () {
     ])->expectsOutputToContain('--dry-run');
 });
 
-
 it('deduplicates options', function () {
     $localPath = base_path('storage/app/assets/');
 
