@@ -6,6 +6,7 @@ use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Once;
+use Illuminate\Validation\ValidationException;
 
 beforeEach(function () {
     Once::flush();
@@ -189,14 +190,15 @@ it('prompts for missing arguments interactively', function () {
     $this->artisan('sync', ['--dry' => true])
         ->expectsChoice('Choose if you want to push or pull', 'push', ['push', 'pull'])
         ->expectsChoice('Choose the remote you want to sync with', 'production', ['production'])
-        ->expectsChoice('Choose the recipes defining the paths to sync', ['assets'], ['All recipes', BaseCommand::ALL_RECIPES, 'assets', 'assets'])
+        ->expectsConfirmation('Do you want to sync all recipes?', 'no')
+        ->expectsChoice('Choose the recipes defining the paths to sync', ['assets'], ['assets', 'assets'])
         ->expectsChoice('Choose rsync options', ['--archive'], array_merge(array_keys(BaseCommand::RSYNC_OPTIONS), array_values(BaseCommand::RSYNC_OPTIONS)))
         ->assertSuccessful();
 
     Process::assertRan(fn ($process) => str_contains($process->command, 'rsync'));
 });
 
-it('expands all recipes when the all sentinel is selected interactively', function () {
+it('expands all recipes when syncing all is confirmed interactively', function () {
     config()->set('sync.recipes', [
         'assets' => ['storage/app/assets/'],
         'uploads' => ['storage/app/uploads/'],
@@ -205,13 +207,53 @@ it('expands all recipes when the all sentinel is selected interactively', functi
     $this->artisan('sync', ['--dry' => true])
         ->expectsChoice('Choose if you want to push or pull', 'push', ['push', 'pull'])
         ->expectsChoice('Choose the remote you want to sync with', 'production', ['production'])
-        ->expectsChoice('Choose the recipes defining the paths to sync', [BaseCommand::ALL_RECIPES], ['All recipes', BaseCommand::ALL_RECIPES, 'assets', 'assets', 'uploads', 'uploads'])
+        ->expectsConfirmation('Do you want to sync all recipes?', 'yes')
         ->expectsChoice('Choose rsync options', ['--archive'], array_merge(array_keys(BaseCommand::RSYNC_OPTIONS), array_values(BaseCommand::RSYNC_OPTIONS)))
         ->assertSuccessful();
 
     Process::assertRan(fn ($process) => str_contains($process->command, base_path('storage/app/assets/')));
     Process::assertRan(fn ($process) => str_contains($process->command, base_path('storage/app/uploads/')));
 });
+
+it('expands all recipes when the --all flag is used non-interactively', function () {
+    config()->set('sync.recipes', [
+        'assets' => ['storage/app/assets/'],
+        'uploads' => ['storage/app/uploads/'],
+    ]);
+
+    $this->withoutMockingConsoleOutput()
+        ->artisan('sync push production --all --dry');
+
+    Process::assertRan(fn ($process) => str_contains($process->command, base_path('storage/app/assets/')));
+    Process::assertRan(fn ($process) => str_contains($process->command, base_path('storage/app/uploads/')));
+});
+
+it('syncs all recipes non-interactively with --all and --no-interaction', function () {
+    config()->set('sync.recipes', [
+        'assets' => ['storage/app/assets/'],
+        'uploads' => ['storage/app/uploads/'],
+    ]);
+
+    $this->artisan('sync', [
+        'operation' => 'push',
+        'remote' => 'production',
+        '--all' => true,
+        '--dry' => true,
+        '--no-interaction' => true,
+    ])->assertSuccessful();
+
+    Process::assertRan(fn ($process) => str_contains($process->command, base_path('storage/app/assets/')));
+    Process::assertRan(fn ($process) => str_contains($process->command, base_path('storage/app/uploads/')));
+});
+
+it('fails non-interactively when no recipe and no --all are given', function () {
+    $this->artisan('sync', [
+        'operation' => 'push',
+        'remote' => 'production',
+        '--dry' => true,
+        '--no-interaction' => true,
+    ]);
+})->throws(ValidationException::class, 'You must provide at least one recipe.');
 
 it('runs rsync for paths from multiple recipes', function () {
     config()->set('sync.recipes', [

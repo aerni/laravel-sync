@@ -13,13 +13,12 @@ use Illuminate\Validation\Rule;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
 
 class BaseCommand extends Command implements PromptsForMissingInput
 {
-    public const ALL_RECIPES = '__all__';
-
     private bool $optionsSetInteractively = false;
 
     public const RSYNC_OPTIONS = [
@@ -50,6 +49,7 @@ class BaseCommand extends Command implements PromptsForMissingInput
             {recipe?* : The recipes defining the paths to sync}
             {--O|option=* : An rsync option to use}
             {--D|dry : Perform a dry run of the sync}
+            {--A|all : Sync all recipes}
         ';
 
         $this->signature .= $baseSignature;
@@ -75,27 +75,28 @@ class BaseCommand extends Command implements PromptsForMissingInput
     {
         parent::interact($input, $output);
 
-        $isInteractive = empty($input->getArgument('recipe'));
+        $isInteractive = empty($input->getArgument('recipe')) && ! $input->getOption('all');
 
         if ($isInteractive) {
-            $recipeKeys = array_keys($this->recipes());
-            $recipeOptions = array_merge(
-                [self::ALL_RECIPES => 'All recipes'],
-                array_combine($recipeKeys, $recipeKeys),
+            $syncAll = confirm(
+                label: 'Do you want to sync all recipes?',
+                default: false,
+                hint: 'Skips recipe selection and syncs every recipe.',
             );
 
-            $selected = multiselect(
-                label: 'Choose the recipes defining the paths to sync',
-                options: $recipeOptions,
-                required: 'You must select at least one recipe.',
-                hint: "Select 'All recipes' to choose every recipe.",
-            );
+            if ($syncAll) {
+                $input->setOption('all', true);
+            } else {
+                $recipeKeys = array_keys($this->recipes());
 
-            if (in_array(self::ALL_RECIPES, $selected, true)) {
-                $selected = $recipeKeys;
+                $selected = multiselect(
+                    label: 'Choose the recipes defining the paths to sync',
+                    options: array_combine($recipeKeys, $recipeKeys),
+                    required: 'You must select at least one recipe.',
+                );
+
+                $input->setArgument('recipe', $selected);
             }
-
-            $input->setArgument('recipe', $selected);
 
             if (empty($input->getOption('option'))) {
                 $configOptions = config('sync.options', []);
@@ -179,6 +180,10 @@ class BaseCommand extends Command implements PromptsForMissingInput
 
     protected function selectedRecipes(): array
     {
+        if ($this->option('all')) {
+            return array_keys($this->recipes());
+        }
+
         return (array) $this->argument('recipe');
     }
 
