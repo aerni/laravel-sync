@@ -10,20 +10,46 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
 
 class BaseCommand extends Command implements PromptsForMissingInput
 {
+    private bool $optionsSetInteractively = false;
+
+    public const RSYNC_OPTIONS = [
+        '--archive' => 'Archive mode (-a, --archive)',
+        '--compress' => 'Compress file data during transfer (-z, --compress)',
+        '--verbose' => 'Increase verbosity (-v, --verbose)',
+        '--progress' => 'Show progress during transfer (--progress)',
+        '--delete' => 'Delete extraneous files from destination (--delete)',
+        '--dry-run' => 'Perform a trial run with no changes made (-n, --dry-run)',
+        '--stats' => 'Give some file-transfer stats (--stats)',
+        '--human-readable' => 'Output numbers in a human-readable format (-h, --human-readable)',
+        '--delete-after' => 'Delete after transfer, not during (--delete-after)',
+        '--partial' => 'Keep partially transferred files (--partial)',
+        '--update' => 'Skip files newer on the receiver (-u, --update)',
+        '--checksum' => 'Skip based on checksum, not mod-time & size (-c, --checksum)',
+        '--copy-links' => 'Transform symlinks into referent files (-L, --copy-links)',
+        '--itemize-changes' => 'Output a change-summary for all updates (-i, --itemize-changes)',
+        '--no-perms' => 'Do not preserve permissions (--no-perms)',
+        '--no-owner' => 'Do not preserve owner (--no-owner)',
+        '--no-group' => 'Do not preserve group (--no-group)',
+    ];
+
     public function __construct()
     {
         $baseSignature = '
             {operation : Choose if you want to push or pull}
             {remote : The remote you want to sync with}
-            {recipe : The recipe defining the paths to sync}
+            {recipe?* : The recipes defining the paths to sync}
             {--O|option=* : An rsync option to use}
             {--D|dry : Perform a dry run of the sync}
+            {--A|all : Sync all recipes}
         ';
 
         $this->signature .= $baseSignature;
@@ -42,23 +68,72 @@ class BaseCommand extends Command implements PromptsForMissingInput
                 label: 'Choose the remote you want to sync with',
                 options: array_keys($this->remotes()),
             ),
-            'recipe' => fn () => select(
-                label: 'Choose the recipe defining the paths to sync',
-                options: array_keys($this->recipes()),
-            ),
         ];
+    }
+
+    protected function interact(InputInterface $input, OutputInterface $output): void
+    {
+        parent::interact($input, $output);
+
+        $isInteractive = empty($input->getArgument('recipe')) && ! $input->getOption('all');
+
+        if ($isInteractive) {
+            $syncAll = confirm(
+                label: 'Do you want to sync all recipes?',
+                default: false,
+                hint: 'Skips recipe selection and syncs every recipe.',
+            );
+
+            if ($syncAll) {
+                $input->setOption('all', true);
+            } else {
+                $recipeKeys = array_keys($this->recipes());
+
+                $selected = multiselect(
+                    label: 'Choose the recipes defining the paths to sync',
+                    options: array_combine($recipeKeys, $recipeKeys),
+                    required: 'You must select at least one recipe.',
+                );
+
+                $input->setArgument('recipe', $selected);
+            }
+
+            if (empty($input->getOption('option'))) {
+                $configOptions = config('sync.options', []);
+                $default = array_values(array_intersect($configOptions, array_keys(self::RSYNC_OPTIONS)));
+
+                $defaultOptions = array_intersect_key(self::RSYNC_OPTIONS, array_flip($default));
+                $options = array_merge($defaultOptions, array_diff_key(self::RSYNC_OPTIONS, $defaultOptions));
+
+                $input->setOption('option', multiselect(
+                    label: 'Choose rsync options',
+                    options: $options,
+                    default: $default,
+                    hint: 'Config defaults are pre-selected. Use space to toggle.',
+                ));
+
+                $this->optionsSetInteractively = true;
+            }
+        }
     }
 
     protected function validate(): void
     {
-        Validator::validate($this->arguments(), [
+        Validator::validate([
+            'operation' => $this->operation(),
+            'remote' => $this->argument('remote'),
+            'recipe' => $this->selectedRecipes(),
+        ], [
             'operation' => 'required|in:push,pull',
             'remote' => ['required', Rule::in(array_keys($this->remotes()))],
-            'recipe' => ['required', Rule::in(array_keys($this->recipes()))],
+            'recipe' => 'required|array|min:1',
+            'recipe.*' => [Rule::in(array_keys($this->recipes()))],
         ], [
             'operation.in' => 'The :attribute [:input] does not exists. Valid values are [push] or [pull].',
             'remote.in' => 'The :attribute [:input] does not exists. Please choose a valid remote.',
-            'recipe.in' => 'The :attribute [:input] does not exists. Please choose a valid recipe.',
+            'recipe.required' => 'You must provide at least one recipe.',
+            'recipe.min' => 'You must provide at least one recipe.',
+            'recipe.*.in' => 'The recipe [:input] does not exist. Please choose a valid recipe.',
         ]);
 
         if ($this->localPathEqualsRemotePath()) {
@@ -72,8 +147,9 @@ class BaseCommand extends Command implements PromptsForMissingInput
 
     protected function localPathEqualsRemotePath(): bool
     {
-        return PathGenerator::localPath($this->recipe()[0])
-            === PathGenerator::remotePath($this->remote(), $this->recipe()[0]);
+        return collect($this->recipePaths())->contains(
+            fn ($path) => PathGenerator::localPath($path) === PathGenerator::remotePath($this->remote(), $path)
+        );
     }
 
     protected function remoteIsReadOnly(): bool
@@ -83,7 +159,7 @@ class BaseCommand extends Command implements PromptsForMissingInput
 
     protected function commands(): Collection
     {
-        return collect($this->recipe())
+        return collect($this->recipePaths())
             ->map(fn ($path) => new SyncCommand(
                 path: $path,
                 operation: $this->operation(),
@@ -102,9 +178,24 @@ class BaseCommand extends Command implements PromptsForMissingInput
         return Arr::get($this->remotes(), $this->argument('remote'));
     }
 
-    protected function recipe(): array
+    protected function selectedRecipes(): array
     {
-        return Arr::get($this->recipes(), $this->argument('recipe'));
+        if ($this->option('all')) {
+            return array_keys($this->recipes());
+        }
+
+        return (array) $this->argument('recipe');
+    }
+
+    protected function recipePaths(): array
+    {
+        $recipes = $this->recipes();
+
+        return collect($this->selectedRecipes())
+            ->flatMap(fn ($name) => Arr::get($recipes, $name, []))
+            ->unique()
+            ->values()
+            ->all();
     }
 
     protected function remotes(): array
@@ -133,7 +224,7 @@ class BaseCommand extends Command implements PromptsForMissingInput
     {
         $options = $this->option('option');
 
-        if (empty($options)) {
+        if (! $this->optionsSetInteractively && empty($options)) {
             $options = config('sync.options');
         }
 

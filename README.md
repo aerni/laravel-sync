@@ -168,6 +168,7 @@ You may use the following options:
 | `-O*` or `--option=*` | Override the default rsync options                        |
 | `-D` or `--dry`       | Perform a dry run of the sync with real-time output       |
 | `-v` or `--verbose`   | Displays the real-time output of the sync in the terminal |
+| `-A` or `--all`       | Sync all recipes                                           |
 
 ## Usage Examples
 
@@ -189,6 +190,11 @@ php artisan sync pull staging assets --dry
 Echo the real-time output of the sync in your terminal:
 ```bash
 php artisan sync pull staging assets --verbose
+```
+
+Sync all recipes:
+```bash
+php artisan sync push production --all
 ```
 
 List the origin, target, options, and port in a nice table:
